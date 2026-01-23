@@ -9,9 +9,6 @@
 
 class UCommonActivatableWidgetContainerBase;
 
-/**
- * 
- */
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UWidget_PrimaryLayout : public UCommonUserWidget
 {
@@ -19,8 +16,8 @@ class FRONTENDUI_API UWidget_PrimaryLayout : public UCommonUserWidget
 	
 public:
 	// Função Getter responsavel por procurar o Widget Stack usando a GamplayTag
-	UCommonActivatableWidgetContainerBase* FindWidgetStackByTag(FGameplayTag& InTag) const;
-	
+	UCommonActivatableWidgetContainerBase* FindWidgetStackByTag(const FGameplayTag& InTag) const;
+
 protected:
 	// Função responsavel por registrar os Widgets Stacks ao TMap (RegisterWidgetStackMap)
 	UFUNCTION(BlueprintCallable)

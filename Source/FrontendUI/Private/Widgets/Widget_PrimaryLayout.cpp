@@ -3,9 +3,7 @@
 
 #include "Widgets/Widget_PrimaryLayout.h"
 
-#include "FrontendDegubHelper.h"
-
-UCommonActivatableWidgetContainerBase* UWidget_PrimaryLayout::FindWidgetStackByTag(FGameplayTag& InTag) const
+UCommonActivatableWidgetContainerBase* UWidget_PrimaryLayout::FindWidgetStackByTag(const FGameplayTag& InTag) const
 {
 	// Checa se o Map contem a Tag solicitada, caso contrario exibe uma mensagem de erro
 	checkf(RegisterWidgetStackMap.Contains(InTag), TEXT("Can't find the widget stack by the Tag %s"), *InTag.ToString());
@@ -21,7 +19,7 @@ void UWidget_PrimaryLayout::RegisterWidgetStack(UPARAM(meta = (Categories= "Fron
 	// Verifica se está no runtime (tempo de execução)
 	if (!IsDesignTime())
 	{
-		// Verifica se este map não contém a Tag requisitada
+		// Previne registro duplicado verificando se a Tag já existe no Map
 		if (!RegisterWidgetStackMap.Contains(InStackTag))
 		{
 			// Adiciona a Tag requisitada (InStackTag) a pilha de widgets (InStack)
