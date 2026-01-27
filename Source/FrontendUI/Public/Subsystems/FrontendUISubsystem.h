@@ -7,6 +7,7 @@
 #include "Widgets/Widget_ActivatableBase.h"
 #include "FrontendUISubsystem.generated.h"
 
+class UFrontendCommonButtonBase;
 class UWidget_PrimaryLayout;
 struct FGameplayTag;
 class UWidget_ActivatableBase;
@@ -17,6 +18,15 @@ enum class EAsyncPushWidgetState : uint8
 	OnCreatedBeforePush,
 	AfterPush
 };
+
+// Delegate para notificar atualizações da descrição de botões no sistema Frontend.
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnButtonDescriptionTextUpdateDelegate, // Nome do delegate
+	UFrontendCommonButtonBase*,				// Tipo do parametro
+	BroadcastingButton,						// Nome do parametro
+	FText,									// Tipo do parametro 2
+	Description								// Nome do parametro 2
+	);
 
 UCLASS()
 class FRONTENDUI_API UFrontendUISubsystem : public UGameInstanceSubsystem
@@ -43,6 +53,9 @@ public:
 		TSoftClassPtr<UWidget_ActivatableBase> InSoftWidgetClass, 
 		TFunction<void(EAsyncPushWidgetState, UWidget_ActivatableBase*)> AsyncPushStateCallback);
 	
+	// Declaração que permite atribuir funções Blueprint a este delegate via Event Dispatcher
+	UPROPERTY(BlueprintAssignable)
+	FOnButtonDescriptionTextUpdateDelegate OnButtonDescriptionTextUpdate;
 private:
 	// Propriedade temporaria para armazenar o Widget Primario/Root
 	UPROPERTY(Transient)
