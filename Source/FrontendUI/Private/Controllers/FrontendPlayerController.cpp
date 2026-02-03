@@ -6,6 +6,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 
+// Função para retornar o IMC setado
+UInputMappingContext* AFrontendPlayerController::GetGlobalIMC() const
+{
+	return GlobalInputMapping_UI;
+}
+
 void AFrontendPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);

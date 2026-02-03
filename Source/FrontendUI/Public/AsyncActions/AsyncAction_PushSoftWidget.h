@@ -12,7 +12,19 @@ class UWidget_ActivatableBase;
 // Define um delegate dinâmico (compatível com Blueprint) que aceita múltiplas conexões (multicast).
 // Possui um único parâmetro: ponteiro para o widget que foi criado/pushed.
 // PushedWidget é o nome do parâmetro que aparecerá no Blueprint.
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPushedSoftWidgetDelegate, UWidget_ActivatableBase*, PushedWidget);
+
+/**
+ * Define um delegate dinâmico multicast (compatível com Blueprint).
+ * Dynamic: Permite serialização e binding em Blueprints via Event Dispatcher.
+ * Multicast: Permite múltiplas funções conectadas que executam simultaneamente ao chamar Broadcast().
+ * 
+ * Disparado quando um widget é adicionado/pushed ao stack.
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+	FOnPushedSoftWidgetDelegate,	// Nome do Delegate
+	UWidget_ActivatableBase*,		// Tipo do Parametro
+	PushedWidget					// Nome do parametro
+	);
 
 UCLASS()
 class FRONTENDUI_API UAsyncAction_PushSoftWidget : public UBlueprintAsyncActionBase
@@ -49,22 +61,23 @@ public:
 	//~ End UBlueprintAsyncActionBase Interface
 
 	
-	// BlueprintAssignable permite que Blueprint conecte nós a esse evento.
-	// Evento disparado quando o widget é criado, mas ainda não foi inserido no stack.
+	// Event Dispatcher visível no Blueprint para conectar eventos personalizados
+	// Disparado quando o widget é criado, mas ainda não foi inserido no stack
 	UPROPERTY(BlueprintAssignable)
 	FOnPushedSoftWidgetDelegate OnWidgetCreatedBeforePush;
 	
-	// Evento disparado após o widget ser inserido no stack e estar pronto para uso.
+	// Event Dispatcher visível no Blueprint para conectar eventos personalizados
+	// Disparado após o widget ser inserido no stack e estar pronto para uso
 	UPROPERTY(BlueprintAssignable)
 	FOnPushedSoftWidgetDelegate AfterPush;
 	
 private:
-	// Cache da referência fraca ao Mundo - evita dangling pointers durante async
+	// Ponteiro cache fraco (dangling pointers) para o World, previne referências fortes durante carregamento assíncrono
 	// dangling pointers = ponteiros que apontam para uma memória que já foi liberada/destruída
 	TWeakObjectPtr<UWorld> CachedOwningWorld;
-	// Cache da referência fraca ao PlayerController dono do widget
+	// Ponteiro Cache fraco do PlayerController dono do widget
 	TWeakObjectPtr<APlayerController> CachedOwningPC;
-	// Cache da soft class do widget (carregamento assíncrono)
+	// Ponteiro Cache da soft class do widget (carregamento assíncrono)
 	TSoftClassPtr<UWidget_ActivatableBase> CachedSoftWidgetClass;
 	// Cache da GameplayTag
 	FGameplayTag CachedWidgetStackTag;

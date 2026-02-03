@@ -22,5 +22,10 @@ namespace FrontendGameplayTags
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_PressAnyKeyScreen);
 	// Tag responsavel pelo widget da tela do Menu Principal
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_MainMenuScreen);
+	// Tag responsavel pelo widget da tela Play Menu
+	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_PlayScreen);
+	// Tag responsavel pelo widget do Modal de confirmação
+	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_ConfirmScreen);
+
 
 }

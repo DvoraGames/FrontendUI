@@ -3,8 +3,13 @@
 
 #include "Subsystems/FrontendUISubsystem.h"
 
+#include "EnhancedInputSubsystems.h"
+#include "FrontendFunctionLibrary.h"
+#include "FrontendGameplayTags.h"
+#include "Controllers/FrontendPlayerController.h"
 #include "Engine/AssetManager.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "Widgets/Widget_ConfirmScreen.h"
 #include "Widgets/Widget_PrimaryLayout.h"
 
 // Função usada para "pegar" o Subsystem do Frontend no c++
@@ -88,3 +93,104 @@ void UFrontendUISubsystem::PushSoftWidgetToStackAsync(
 			}
 		));
 }
+
+void UFrontendUISubsystem::PushConfirmScreenToModalStackAsync(
+	EConfirmScreenType InScreenType,
+	const FText& InScreenTitle, const FText& InScreenMsg,
+	TFunction<void(EConfirmScreenButtonType)> ButtonClickedCallback)
+{
+	// Cria uma variável vazia para receber o pacote do switch
+	UConfirmScreenInfoObject* CreatedInfoObject = nullptr;
+	
+	// Cria pacote baseado no tipo do modal escolhido
+	switch (InScreenType)
+	{
+	case EConfirmScreenType::Ok:
+		// Cria do tipo Ok
+		CreatedInfoObject = UConfirmScreenInfoObject::CreateOkScreen(InScreenTitle, InScreenMsg);
+		break;
+	case EConfirmScreenType::YesNo:
+		// Cria do tipo YesNo
+		CreatedInfoObject = UConfirmScreenInfoObject::CreateYesNoScreen(InScreenTitle, InScreenMsg);
+		break;
+	case EConfirmScreenType::OkCancel:
+		// Cria do tipo OkCancel
+		CreatedInfoObject = UConfirmScreenInfoObject::CreateOkCancelScreen(InScreenTitle, InScreenMsg);
+		break;
+	case EConfirmScreenType::Unknown:
+		break;
+	default:
+		break;
+	}
+	
+	// Verifica se o CreatedInfoObject é valido, caso ainda esteja vazio crasha
+	check(CreatedInfoObject);
+	
+	// Faz o Push Assincrono da ConfirmationScreen para a Stack Modal
+	PushSoftWidgetToStackAsync(
+		FrontendGameplayTags::Frontend_WidgetStack_Modal,	// Gameplay Tag do Stack
+		UFrontendFunctionLibrary::GetFrontendSoftWidgetClassByTag(FrontendGameplayTags::Frontend_Widget_ConfirmScreen), // WidgetConfirmScreen class
+		// CALLBACK ANTES/DEPOIS do PUSH (roda quando widget carrega)
+		[CreatedInfoObject, ButtonClickedCallback](EAsyncPushWidgetState InPushState, UWidget_ActivatableBase* PushedWidget)
+		{
+			// Verifica se o estado do Push ainda é BeforePush (Antes push)
+			if (InPushState == EAsyncPushWidgetState::OnCreatedBeforePush)
+			{
+				// Tenta converter (Cast) o PushedWidget em UWidget_ConfirmScreen, caso falhe crasha
+				UWidget_ConfirmScreen* CreatedConfirmScreen = CastChecked<UWidget_ConfirmScreen>(PushedWidget);
+				
+				// Inicializa o modal: aplica dados (title/botões) e conecta callback de resultado
+				CreatedConfirmScreen->InitConfirmScreen(CreatedInfoObject, ButtonClickedCallback);
+			}
+		}
+		);
+}
+
+// Função para adicionar o Input Mapping Context global da UI via Player Controller
+void UFrontendUISubsystem::AddGlobalInputMappingContext(AFrontendPlayerController* FrontendPC, int32 Priority)
+{
+	// Verifica se o Player Controller é valido, caso contrario crasha e mostra a menssagem
+	checkf(FrontendPC, TEXT("Player Controller not found"));
+	
+	// Verifica se o GlobalIMC foi configurado no FrontendPC.
+	if (FrontendPC->GetGlobalIMC())
+	{
+        // Obtém o LocalPlayer do PlayerController e verifica se é válido
+		if (ULocalPlayer* LocalPlayer = FrontendPC->GetLocalPlayer())
+		{
+			// Obtém o Enhanced Input Local Player Subsystem para gerenciar os Input Mapping Contexts
+			if (UEnhancedInputLocalPlayerSubsystem* EIS = LocalPlayer->
+						GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			{
+				// Adiciona o Input Mapping Context ao subsystem com a prioridade especificada
+				EIS->AddMappingContext(FrontendPC->GetGlobalIMC(), Priority);
+			}
+		}
+	}
+
+}
+
+// Função para remover o Input Mapping Context global da UI
+void UFrontendUISubsystem::RemoveGlobalInputMappingContext(AFrontendPlayerController* FrontendPC)
+{
+	// Verifica se o Player Controller é valido, caso contrario crasha e mostra a menssagem
+	checkf(FrontendPC, TEXT("Player Controller not found"));
+	
+	// Verifica se o GlobalIMC foi configurado no FrontendPC.
+	if (FrontendPC->GetGlobalIMC())
+	{
+		// Obtém o LocalPlayer do PlayerController e verifica se é válido
+		if (ULocalPlayer* LocalPlayer = FrontendPC->GetLocalPlayer())
+		{
+			// Obtém o Enhanced Input Local Player Subsystem para gerenciar os Input Mapping Contexts
+			if (UEnhancedInputLocalPlayerSubsystem* EIS = LocalPlayer->
+						GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+			{
+				// Remove o Input Mapping Context do subsystem
+				EIS->RemoveMappingContext(FrontendPC->GetGlobalIMC());
+			}
+		}
+	}
+}
+
+

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FrontendTypes/FrontendEnumTypes.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Widgets/Widget_ActivatableBase.h"
 #include "FrontendUISubsystem.generated.h"
@@ -53,12 +54,33 @@ public:
 		TSoftClassPtr<UWidget_ActivatableBase> InSoftWidgetClass, 
 		TFunction<void(EAsyncPushWidgetState, UWidget_ActivatableBase*)> AsyncPushStateCallback);
 	
+	// FUNÇÃO PRINCIPAL: Carrega modal assíncrono no stack "Modal"
+	// 1. Cria pacote UConfirmScreenInfoObject baseado no tipo
+	// 2. Chama PushSoftWidgetToStackAsync com ConfirmScreen class
+	// 3. Widget chama InitConfirmScreen() automaticamente
+	// 4. Callback roda com resultado quando usuário clica botão
+	
+	void PushConfirmScreenToModalStackAsync(
+		EConfirmScreenType InScreenType,									// Tipo do Modal: Ok/YesNo/OkCancel
+		const FText& InScreenTitle,											// Título do modal
+		const FText& InScreenMsg,											// Mensagem principal
+		TFunction<void (EConfirmScreenButtonType)> ButtonClickedCallback	// Recebe o retorno do botão
+		);
+	
 	// Declaração que permite atribuir funções Blueprint a este delegate via Event Dispatcher
 	UPROPERTY(BlueprintAssignable)
 	FOnButtonDescriptionTextUpdateDelegate OnButtonDescriptionTextUpdate;
+	
+	// Função para adicionar o Input Mapping Context global da UI via Player Controller
+	UFUNCTION(BlueprintCallable)
+	static void AddGlobalInputMappingContext(AFrontendPlayerController* FrontendPC, int32 Priority);
+	
+	// Função para remover o Input Mapping Context global da UI
+	UFUNCTION(BlueprintCallable)
+	void RemoveGlobalInputMappingContext(AFrontendPlayerController* FrontendPC);
+
 private:
 	// Propriedade temporaria para armazenar o Widget Primario/Root
 	UPROPERTY(Transient)
 	UWidget_PrimaryLayout* CreatedPrimaryLayout;
-	
 };
