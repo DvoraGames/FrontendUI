@@ -17,7 +17,7 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 	{
 			// Registra binding de UI action e retorna handle
 			ResetActionHandle = RegisterUIActionBinding(
-			FBindUIActionArgs(
+		 	FBindUIActionArgs(
 				ResetAction,	// Ação (InputAction)
 				true,			// Mostrar na Bound Action Bar
 				FSimpleDelegate::CreateUObject(this, &ThisClass::OnResetBoundActionTriggered) // Callback quando acionado
