@@ -6,11 +6,15 @@
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
+class UListDataObject_Base;
 class UListDataObject_Collection;
 
 /*
- * SINGLETON-LIKE: centraliza criação de TODAS as abas e suas sub-paginas
-*/
+ * "Registry" central: cria e registra todas as abas de opções (Gameplay/Audio/Video/Control)
+ * e expõe métodos para a tela de opções obter os itens de cada aba.
+ *
+ * Obs: Não é singleton de verdade, mas se comporta como um "único ponto de verdade" para essas opções.
+ */
 UCLASS()
 class FRONTENDUI_API UOptionsDataRegistry : public UObject
 {
@@ -22,7 +26,10 @@ public:
 	void InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlayer);
 	
 	// OptionsScreen itera aqui pra pegar Gameplay/Audio/Video/Control e criar botões das abas
-	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollection; }
+	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollections; }
+	
+	// Retorna os itens (entradas) da aba selecionada, identificada pelo TabID.
+	TArray<UListDataObject_Base*> GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const;
 	
 private:
 	// Funções privadas que criam cada aba específica e adicionam no array
@@ -33,5 +40,5 @@ private:
 	
 	// Array final com ponteiros para as 4 abas: [Gameplay, Audio, Video, Controls]
 	UPROPERTY(Transient)
-	TArray<UListDataObject_Collection*> RegisteredOptionsTabCollection;
+	TArray<UListDataObject_Collection*> RegisteredOptionsTabCollections;
 };

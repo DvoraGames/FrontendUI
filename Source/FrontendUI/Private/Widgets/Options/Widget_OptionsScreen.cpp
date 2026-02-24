@@ -6,6 +6,7 @@
 #include "Input/CommonUIInputTypes.h"
 
 #include "FrontendDegubHelper.h"
+#include "Widgets/Components/FrontendCommonListView.h"
 #include "Widgets/Components/FrontendTabListWidgetBase.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
@@ -14,7 +15,7 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	
-	// Verifica se o ResetAction é valido, ou seja, se foi setado e não é nulo
+	// Verifica se o ResetAction é valido, ou seja, se foi configurado e não é nulo
 	if (ResetAction)
 	{
 			// Registra binding de UI action e retorna handle
@@ -27,7 +28,7 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 			);
 	}
 	
-	// Faz o link do callback de troca de aba
+	// Registra o handler para atualizar a lista quando o usuário trocar de aba
 	TabListWidget_OptionsTabs->OnTabSelected.AddUniqueDynamic(this, &ThisClass::OnOptionsTabSelected);
 	
 }
@@ -43,7 +44,7 @@ void UWidget_OptionsScreen::NativeOnActivated()
 	//   3. O loop itera sobre esse array já montado
 	for (UListDataObject_Collection* TabCollection : GetOrCreateDataRegistry()->GetRegisteredOptionsTabCollection())
 	{
-		// Pula o item do loop se a aba for nula
+        // Ignora entradas inválidas por segurança
 		if (!TabCollection)
 		{
 			continue;
@@ -54,23 +55,23 @@ void UWidget_OptionsScreen::NativeOnActivated()
 		// Variavel local do Nome da Aba
 		FText TabName = TabCollection->GetDataDisplayName();
 		
-		// Pula o item se já existir na lista de abas
+        // Evita duplicar botões caso a tela seja reativada múltiplas vezes (Pop/Push do UI Stack)
 		if (TabListWidget_OptionsTabs->GetTabButtonBaseByID(TabID) != nullptr)
 		{
 			continue;
 		}
 		
-		// Cria/Registra o Botão da aba no TabListWidget (WBP recebe e exibe)
+        // Solicita ao TabList que crie um botão de navegação para esta aba
 		TabListWidget_OptionsTabs->RequestRegisterTab(TabID, TabName);
 	}
 }
 
 UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()
 {
-	//  Lazy creation: só cria Registry na 1ª vez que NativeOnActivated roda (não cria antes desnecessariamente)
+	// Lazy Initialization: Só cria o Registry na primeira vez que ele for solicitado
 	if (!CreatedOwningDataRegistry)
 	{
-		// Cria a instancia do Registry "filho" dessa tela (vive enquanto OptionsScreen existir)
+		// Instancia o Registry. Como esta tela é o Outer, ele será destruído com ela
 		CreatedOwningDataRegistry = NewObject<UOptionsDataRegistry>();
 		
 		// Inicializa Registry
@@ -88,10 +89,24 @@ UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()
 void UWidget_OptionsScreen::OnResetBoundActionTriggered()
 {
 	Debug::Print(TEXT("Reset Settings"));
+	
+	// TODO: Implementar lógica real de resetar as configurações da aba atual
 }
 
 // Função disparada quando a Aba é Selecionada
 void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 {
-	Debug::Print(TEXT("New Tab Selected. Tab ID: ") + TabID.ToString());
+	// Busca no Registry todos os DataObjects (opções) que pertencem a aba recém-selecionada
+	TArray<UListDataObject_Base*> FoundListSourceItems = GetOrCreateDataRegistry()->GetListSourceItemBySelectedTabID(TabID);
+	
+	// Alimenta e atualiza a ListView com os novos itens
+	CommonListView_OptionsList->SetListItems(FoundListSourceItems);
+	CommonListView_OptionsList->RequestRefresh();
+	
+	// Se a aba possuir itens, foca automaticamente na primeira opção (útil para navegação via Gamepad)
+	if (CommonListView_OptionsList->GetListItems().Num() != 0)
+	{
+		CommonListView_OptionsList->NavigateToIndex(0);
+		CommonListView_OptionsList->SetSelectedIndex(0);
+	}
 }
