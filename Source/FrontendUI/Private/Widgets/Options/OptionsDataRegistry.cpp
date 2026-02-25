@@ -3,8 +3,16 @@
 
 #include "Widgets/Options/OptionsDataRegistry.h"
 
+#include "FrontendSettings/FrontendGameUserSettings.h"
+#include "Widgets/Options/OptionsDataInteractionHelper.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+
+// Macro para facilitar a criação e vinculação do Helper de Reflection (Getter/Setter).
+/* Pega o nome da função alvo no GameUserSettings (ex: "GetCurrentGameDifficulty"), 
+converte para FString e inicializa o Helper inteligente. */
+#define  MAKE_OPTIONS_DATA_CONTROL(SetterOrGetterFuncName) \
+	MakeShared<FOptionsDataInteractionHelper>(GET_FUNCTION_NAME_STRING_CHECKED(UFrontendGameUserSettings, SetterOrGetterFuncName))
 
 // Inicializa o catálogo criando todas as abas (e seus itens internos)
 void UOptionsDataRegistry::InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlayer)
@@ -43,6 +51,14 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
     // Nome exibido no botão/rotulo da aba
 	GameplayTabCollection->SetDataDisplayName(FText::FromString("Gameplay"));
 	
+	// Cria o Helper da opção de dificuldade, liga o DataObject da UI ao getter GetCurrentGameDifficulty do GameUserSettings via Reflection
+	/** Substituido pelo macro ... para ter menos repetição e deixar a manutenção facil **/
+	/*
+	 *TSharedPtr<FOptionsDataInteractionHelper> ConstructedHelper = 
+		MakeShared<FOptionsDataInteractionHelper>(GET_FUNCTION_NAME_CHECKED(UFrontendGameUserSettings, GetCurrentGameDifficulty).ToString());
+	*/
+	
+	
 	/** Game Difficulty Option **/
 	{
 		// Cria a opção de dificuldade como carrossel (várias opções navegáveis)
@@ -56,6 +72,13 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		GameDifficulty->AddDynamicOption(TEXT("Normal"), FText::FromString(TEXT("Normal")));
 		GameDifficulty->AddDynamicOption(TEXT("Hard"), FText::FromString(TEXT("Hard")));
 		GameDifficulty->AddDynamicOption(TEXT("Expert"), FText::FromString(TEXT("Expert")));
+		
+		// Liga o DataObject da UI aos Getters/Setters do GameUserSettings via Reflection (usando a Macro)
+		GameDifficulty->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameDifficulty));
+		GameDifficulty->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentGameDifficulty));
+		
+		// Define que se alterar a dificuldade, o jogo deve aplicar a config imediatamente
+		GameDifficulty->SetShouldApplySettingsImmediately(true);
 
 		// Adiciona a opção dentro da aba Gameplay
 		GameplayTabCollection->AddChildListData(GameDifficulty);

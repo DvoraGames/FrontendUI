@@ -49,6 +49,8 @@ public:
 	// Retorna se esta entrada possui filhos na hierarquia. False por padrão; override em subclasses que agrupam filhos.
 	virtual bool HasAnyChildListData() const { return false; }
 	
+	void SetShouldApplySettingsImmediately(bool bShouldApplyRightAway) {bShouldApplyChangeImmediately = bShouldApplyRightAway;}
+	
 protected:	
 	// Override em subclasses para implementar lógica específica de inicialização (ex: carregar save, criar filhos).
 	virtual void OnDataObjectInitialized();
@@ -67,4 +69,7 @@ private:
 	
 	UPROPERTY(Transient)
 	UListDataObject_Base* ParentData;				// Referência ao pai (não serializada, reconstruída em runtime)
+	
+	// Determina se a alteração desta opção deve ser salva e aplicada ao jogo imediatamente. Útil para opções críticas (ex: Resolução de Tela).
+	bool bShouldApplyChangeImmediately = false;		
 };

@@ -30,6 +30,8 @@ protected:
 	//~ Begin UCommonActivatableWidget Interface
 	// Função chamada na Ativação do Widget
 	virtual void NativeOnActivated() override;
+	// Função chamada na Desativação do Widget
+	virtual void NativeOnDeactivated() override;
 	//~ End UCommonActivatableWidget Interface
 
 private:

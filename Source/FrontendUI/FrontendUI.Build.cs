@@ -19,6 +19,7 @@ public class FrontendUI : ModuleRules
 			"UMG",
 			"CommonUI",
 			"CommonInput",
+			"PropertyPath"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

@@ -5,7 +5,8 @@
 
 #include "Input/CommonUIInputTypes.h"
 
-#include "FrontendDegubHelper.h"
+#include "FrontendDebugerHelper.h"
+#include "FrontendSettings/FrontendGameUserSettings.h"
 #include "Widgets/Components/FrontendCommonListView.h"
 #include "Widgets/Components/FrontendTabListWidgetBase.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
@@ -64,6 +65,14 @@ void UWidget_OptionsScreen::NativeOnActivated()
         // Solicita ao TabList que crie um botão de navegação para esta aba
 		TabListWidget_OptionsTabs->RequestRegisterTab(TabID, TabName);
 	}
+}
+
+void UWidget_OptionsScreen::NativeOnDeactivated()
+{
+	Super::NativeOnDeactivated();
+	
+	// Ao fechar a tela de configurações, força o GameUserSettings a salvar todas as mudanças no arquivo .ini
+	UFrontendGameUserSettings::Get()->ApplySettings(true);
 }
 
 UOptionsDataRegistry* UWidget_OptionsScreen::GetOrCreateDataRegistry()

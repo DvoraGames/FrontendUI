@@ -1,7 +1,10 @@
 // DvoraGames All Rights Reserved
 
-
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+#include "Widgets/Options/OptionsDataInteractionHelper.h"
+#include "FrontendDebugerHelper.h"
+
+
 
 void UListDataObject_Carousel::AddDynamicOption(const FString& InStringValue, const FText& InDisplayText)
 {
@@ -41,8 +44,17 @@ void UListDataObject_Carousel::AdvanceToNextOption()
 	// Sincroniza o texto de exibição com o novo valor selecionado
 	TrySetDisplayTextFromStringValue(CurrentStringValue);
 	
-	// Notifica a UI e outros listeners que o valor mudou
-	NotifyListDataModified(this);
+	// Se o Setter configurado via Reflection. for valido
+	if (DataDynamicSetter)
+	{
+		// Injeta o novo valor (convertido em string) diretamente na variável original do jogo
+		DataDynamicSetter->SetValueFromString(CurrentStringValue);
+		
+		Debug::Print(TEXT("DataDynamicSetter is used. The lasted value from Getter: ") + DataDynamicGetter->GetValueAsString());
+		
+		// Dispara o evento de modificação deste DataObject, avisando os widgets (como o ListView) para se redesenharem
+		NotifyListDataModified(this);
+	}
 }
 
 // Retorna para a opção anterior da lista. Se estiver na primeira, vai para a última (loop).
@@ -76,8 +88,17 @@ void UListDataObject_Carousel::BackToPreviousOption()
 	// Sincroniza o texto de exibição com o novo valor selecionado
 	TrySetDisplayTextFromStringValue(CurrentStringValue);
 	
-	// Notifica a UI e outros listeners que o valor mudou
-	NotifyListDataModified(this);
+	// Se o Setter configurado via Reflection. for valido
+	if (DataDynamicSetter)
+	{
+		// Injeta o novo valor (convertido em string) diretamente na variável original do jogo
+		DataDynamicSetter->SetValueFromString(CurrentStringValue);
+		
+		Debug::Print(TEXT("DataDynamicSetter is used. The lasted value from Getter: ") + DataDynamicGetter->GetValueAsString());
+		
+		// Dispara o evento de modificação deste DataObject, avisando os widgets (como o ListView) para se redesenharem
+		NotifyListDataModified(this);
+	}
 }
 
 void UListDataObject_Carousel::OnDataObjectInitialized()
@@ -86,6 +107,17 @@ void UListDataObject_Carousel::OnDataObjectInitialized()
 	if (!AvailableOptionsStringArray.IsEmpty())
 	{
 		CurrentStringValue = AvailableOptionsStringArray[0];
+	}
+	
+	// Se o Getter configurado via Reflection for valido
+	if (DataDynamicGetter)
+	{
+		// Verifica se o retorno do Getter não está vazio
+		if (!DataDynamicGetter->GetValueAsString().IsEmpty())
+		{
+			// Sobrescreve o valor padrão/fallback com a configuração real retornada pelo backend do jogo
+			CurrentStringValue = DataDynamicGetter->GetValueAsString();
+		}
 	}
 	
 	// Tenta atualizar o texto exibido. Se falhar (ex: array vazio ou dados dessincronizados), usa um fallback.
