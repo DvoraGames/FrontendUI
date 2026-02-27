@@ -23,6 +23,15 @@ class FRONTENDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public I
 {
 	GENERATED_BODY()
 	
+public:
+	// Evento Blueprint chamado quando o estado de hover muda. Implementar no Blueprint filho para atualizar feedback visual
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "On Item Hovered"))
+	void BP_OnItemHovered(bool bIsHovered, bool bIsEntryWidgetStillSelected);
+	
+	// Chamado externamente para notificar que o estado de hover deste item mudou.
+	// Delega ao evento Blueprint BPOnItemHovered, passando também se o item está atualmente selecionado.
+	void NativeOnItemHovered(bool bIsHovered);
+	
 protected:
 	//~ Begin IUserObjectListEntry Interface
 	/* Função nativa da ListView disparada quando esta entrada recebe seu objeto de dados. 
@@ -40,6 +49,10 @@ protected:
 	// Handler acionado sempre que o DataObject vinculado a esta entrada sofrer alterações
 	virtual void OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData, 
 		EOptionsListDataModifyReason ModifyReason);
+	
+	/* Força este entry a tornar-se o item selecionado na ListView. Útil para entries que possuem interações internas 
+	(ex: botões	de carrossel) e precisam se auto-selecionar ao serem clicados. */
+	void SelectThisEntryWidget() const;
 	
 private:
 	/***** Bind Widgets *****/

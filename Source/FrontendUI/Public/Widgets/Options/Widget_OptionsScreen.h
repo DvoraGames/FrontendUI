@@ -45,6 +45,13 @@ private:
 	UFUNCTION()
 	void OnOptionsTabSelected(FName TabID);
 	
+	// Handler chamado quando um item da ListView é hovereado. Usado para atualizar feedback visual do item em foco.
+	void OnListViewItemHovered(UObject* InHoveredItem, bool bIsHovered);
+	
+	// Handler chamado quando um item da ListView é selecionado. 
+	/* Pode ser usado para expandir detalhes ou acionar lógica específica do tipo de opção selecionada. */
+	void OnListViewItemSelected(UObject* InSelectedItem);
+	
 	/***** Bound Widgets *****/
 	UPROPERTY(meta=(BindWidget))
 	// Widget Blueprint vinculado que define onde os botões das abas vão aparecer (HorizontalBox interno)

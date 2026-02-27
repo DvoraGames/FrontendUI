@@ -17,6 +17,13 @@ void UWidget_ListEntry_Carousel::NativeOnInitialized()
 	
     // Bind do clique para navegar para a próxima opção no carrossel
 	CommonButton_NextOption->OnClicked().AddUObject(this, &ThisClass::OnNextClicked);
+	
+	// Bind do clique no próprio Rotator: auto-seleciona este item na ListView.
+	CommonRotator_AvailableOptions->OnClicked().AddLambda(
+		[this]()
+		{
+			SelectThisEntryWidget();
+		});
 }
 
 void UWidget_ListEntry_Carousel::OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject)
@@ -53,6 +60,9 @@ void UWidget_ListEntry_Carousel::OnPreviousClicked() const
 		// Se o DataObject foi atualizado, atualiza o rotator para refletir o texto atual
 		CachedOwningCarouselDataObject->BackToPreviousOption();
 	}
+	
+	// Auto-seleciona este item na ListView para garantir foco correto ao navegar via clique nos botões de seta.
+	SelectThisEntryWidget();
 }
 void UWidget_ListEntry_Carousel::OnNextClicked() const
 {
@@ -61,4 +71,7 @@ void UWidget_ListEntry_Carousel::OnNextClicked() const
 		// Navega para a próxima opção no DataObject (a UI será atualizada via modificação do DataObject)
 		CachedOwningCarouselDataObject->AdvanceToNextOption();
 	}
+	
+	// Auto-seleciona este item na ListView para garantir foco correto ao navegar via clique nos botões de seta.
+	SelectThisEntryWidget();
 }

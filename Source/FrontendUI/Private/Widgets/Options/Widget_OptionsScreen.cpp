@@ -11,6 +11,7 @@
 #include "Widgets/Components/FrontendTabListWidgetBase.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
+#include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
 void UWidget_OptionsScreen::NativeOnInitialized()
 {
@@ -31,6 +32,9 @@ void UWidget_OptionsScreen::NativeOnInitialized()
 	
 	// Registra o handler para atualizar a lista quando o usuário trocar de aba
 	TabListWidget_OptionsTabs->OnTabSelected.AddUniqueDynamic(this, &ThisClass::OnOptionsTabSelected);
+	
+	CommonListView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListViewItemHovered);
+	CommonListView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListViewItemSelected);
 	
 }
 
@@ -118,4 +122,39 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 		CommonListView_OptionsList->NavigateToIndex(0);
 		CommonListView_OptionsList->SetSelectedIndex(0);
 	}
+}
+
+void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool bIsHovered)
+{
+	// Ignora callbacks disparados com item nulo
+	if (!InHoveredItem)
+	{
+		return;
+	}
+	
+	// Entry Widget correspondente ao UObject hovereado.
+	UWidget_ListEntry_Base* HoveredItem = CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InHoveredItem);
+	
+	// Verifica se o HoveredItem e valido, caso contrario, crasha
+	check(HoveredItem);
+	
+	/* Delega o tratamento de hover ao próprio Entry Widget, passando também se o item está selecionado para que o
+	Entry ajuste seu visual corretamente (hover + seleção). */
+	HoveredItem->NativeOnItemHovered(bIsHovered);
+}
+
+void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
+{
+	// Ignora callbacks disparados com item nulo
+	if (!InSelectedItem)
+	{
+		return;
+	}
+	
+	const FString DebugString =
+	CastChecked<UListDataObject_Base>(InSelectedItem)->GetDataDisplayName().ToString() + 
+		TEXT(" was ") + 
+			(InSelectedItem ? TEXT("Selected") : TEXT("Unselected"));
+	
+	Debug::Print(DebugString);
 }
