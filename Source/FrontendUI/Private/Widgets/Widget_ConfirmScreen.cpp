@@ -1,10 +1,15 @@
 // DvoraGames All Rights Reserved
 
 #include "Widgets/Widget_ConfirmScreen.h"
+
+#include "FrontendSpacesHelper.h"
+
 #include "CommonTextBlock.h"
 #include "ICommonInputModule.h"
 #include "Components/DynamicEntryBox.h"
 #include "Widgets/Components/FrontendCommonButtonBase.h"
+
+using namespace FFrontendLocHelper;
 
 // Essa função cria um "pacote de dados" para o modal OK.
 UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkScreen(const FText& InScreenTitle, const FText& InScreenMsg)
@@ -20,8 +25,8 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkScreen(const FText& 
 	FConfirmScreenButtonInfo OkButtonInfo;
 	// Aplica o que esse botão irá retornar ao clicar nele (Closed)
 	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Closed;
-	// Altera o texto do Botao para OK
-	OkButtonInfo.ButtonTextToDisplay = FText::FromString(TEXT("Ok"));
+	// Altera o texto do Botao para OK pegando da Tabela de strings
+	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");
 	
 	// Adiciona o botão na lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);
@@ -45,15 +50,15 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateYesNoScreen(const FTex
 	FConfirmScreenButtonInfo YesButtonInfo;
 	// Aplica o que esse botão irá retornar ao clicar nele (Confirmed)
 	YesButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	// Altera o texto do Botao para Yes
-	YesButtonInfo.ButtonTextToDisplay = FText::FromString(TEXT("Yes"));
+	// Altera o texto do Botao para Yes pegando da Tabela de strings
+	YesButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Yes");
 	
 	// Cria o botão No usando a Struct
 	FConfirmScreenButtonInfo NoButtonInfo;
 	// Aplica o que esse botão irá retornar ao clicar nele (Cancelled)
 	NoButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	// Altera o texto do Botao para No
-	NoButtonInfo.ButtonTextToDisplay = FText::FromString(TEXT("No"));
+	// Altera o texto do Botao para No pegando da Tabela de strings
+	NoButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.No");
 	
 	// Adiciona os botões na lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(YesButtonInfo);
@@ -77,15 +82,15 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkCancelScreen(const F
 	FConfirmScreenButtonInfo OkButtonInfo;	
 	// Aplica o que esse botão irá retornar ao clicar nele (Confirmed)
 	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	// Altera o texto do Botao para Ok
-	OkButtonInfo.ButtonTextToDisplay = FText::FromString(TEXT("Ok"));
+	// Altera o texto do Botao para Ok pegando da Tabela de strings
+	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");
 	
 	// Cria o botão Cancel usando a Struct
 	FConfirmScreenButtonInfo CancelButtonInfo;
 	// Aplica o que esse botão irá retornar ao clicar nele (Cancelled)
 	CancelButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	// Altera o texto do Botao para Cancel
-	CancelButtonInfo.ButtonTextToDisplay = FText::FromString(TEXT("Cancel"));
+	// Altera o texto do Botao para Cancel pegando da Tabela de strings
+	CancelButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Cancel");
 	
 	// Adiciona os botões na lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);

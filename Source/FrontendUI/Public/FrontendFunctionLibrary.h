@@ -8,9 +8,7 @@
 #include "FrontendFunctionLibrary.generated.h"
 
 class UWidget_ActivatableBase;
-/**
- * 
- */
+
 UCLASS()
 class FRONTENDUI_API UFrontendFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -23,5 +21,4 @@ public:
 		BlueprintPure, // Função "pura" - só leitura, sem Exec pins no BP
 		Category="Frontend Function Library") // Categoria no menu de contexto Blueprint
 	static TSoftClassPtr<UWidget_ActivatableBase> GetFrontendSoftWidgetClassByTag(UPARAM(meta = (Categories = "Frontend.Widget"))FGameplayTag InWidgetTag); // Tag filtrada
-	
 };

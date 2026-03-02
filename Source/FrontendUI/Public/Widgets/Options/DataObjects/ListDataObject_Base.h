@@ -37,7 +37,7 @@ public:
 	LIST_DATA_ACCESSOR(FText, DataDisplayName)
 	LIST_DATA_ACCESSOR(FText, DescriptionRichText)
 	LIST_DATA_ACCESSOR(FText, DisabledRichText)
-	LIST_DATA_ACCESSOR(TSoftClassPtr<UTexture2D>, SoftDescriptionImage)
+	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, SoftDescriptionImage)
 	LIST_DATA_ACCESSOR(UListDataObject_Base*, ParentData)
 	
 	// Função que será usada para chamar a função OnDataObjectInitialized() para subclasses fazerem setup específico
@@ -61,14 +61,15 @@ protected:
 	
 private:
 	// Propriedades
-	FName DataID;									// ID único da configuração 
-	FText DataDisplayName;							// Nome exibido
-	FText DescriptionRichText;						// Descrição com rich text
-	FText DisabledRichText;							// Descrição exibida quando item está desabilitado
-	TSoftClassPtr<UTexture2D> SoftDescriptionImage; // Imagem descritiva (carregamento sob demanda)
+	FName DataID;										// ID único da configuração 
+	FText DataDisplayName;								// Nome exibido
+	FText DescriptionRichText;							// Descrição com rich text
+	FText DisabledRichText;								// Descrição exibida quando item está desabilitado
+	TSoftObjectPtr<UTexture2D> SoftDescriptionImage;	// Imagem descritiva (carregamento sob demanda)
 	
+	// Referência ao pai (não serializada, reconstruída em runtime)
 	UPROPERTY(Transient)
-	UListDataObject_Base* ParentData;				// Referência ao pai (não serializada, reconstruída em runtime)
+	UListDataObject_Base* ParentData;
 	
 	// Determina se a alteração desta opção deve ser salva e aplicada ao jogo imediatamente. Útil para opções críticas (ex: Resolução de Tela).
 	bool bShouldApplyChangeImmediately = false;		

@@ -7,6 +7,7 @@
 #include "Widgets/Widget_ActivatableBase.h"
 #include "Widget_OptionsScreen.generated.h"
 
+class UWidget_OptionsDetailsView;
 class UFrontendCommonListView;
 class UFrontendTabListWidgetBase;
 class UOptionsDataRegistry;
@@ -52,14 +53,20 @@ private:
 	/* Pode ser usado para expandir detalhes ou acionar lógica específica do tipo de opção selecionada. */
 	void OnListViewItemSelected(UObject* InSelectedItem);
 	
+	FString TryGetEntryWidgetClassName(UObject* InOwningListItem) const;
+	
 	/***** Bound Widgets *****/
+	// Widget vinculado da box que define onde os botões das abas vão aparecer (HorizontalBox interno)
 	UPROPERTY(meta=(BindWidget))
-	// Widget Blueprint vinculado que define onde os botões das abas vão aparecer (HorizontalBox interno)
 	UFrontendTabListWidgetBase* TabListWidget_OptionsTabs;
 	
-	// Widget Lista que exibe as opções (carrosséis, sliders, etc.) da aba atualmente selecionada.
+	// Widget vinculado da Lista que exibe as opções (carrosséis, sliders, etc.) da aba selecionada.
 	UPROPERTY(meta=(BindWidget))
 	UFrontendCommonListView* CommonListView_OptionsList;
+	
+	// Widget vinculado responsavel por mostrar informações de cada opção
+	UPROPERTY(meta=(BindWidget))
+	UWidget_OptionsDetailsView* DetailsView_ListEntryInfo;
 	/***** Bound Widgets *****/
 
 	// Registry de dados instanciado por esta tela. Mantém o estado temporário e a hierarquia das opções enquanto a tela estiver viva. 

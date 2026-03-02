@@ -10,6 +10,7 @@
 #include "Widgets/Components/FrontendCommonListView.h"
 #include "Widgets/Components/FrontendTabListWidgetBase.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
+#include "Widgets/Options/Widget_OptionsDetailsView.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
@@ -141,6 +142,30 @@ void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool b
 	/* Delega o tratamento de hover ao próprio Entry Widget, passando também se o item está selecionado para que o
 	Entry ajuste seu visual corretamente (hover + seleção). */
 	HoveredItem->NativeOnItemHovered(bIsHovered);
+	
+	// Verifica se está hoverado
+	if (bIsHovered)
+	{
+		// Atualiza as informações da DetailsView com base no Item Hovereado.
+		/* As informações são preenchidas no Data Registry */
+		DetailsView_ListEntryInfo->UpdateDetailsViewInfo(
+			CastChecked<UListDataObject_Base>(InHoveredItem),
+			TryGetEntryWidgetClassName(InHoveredItem)
+			);
+	}
+	else
+	{
+		// Pega o Item atualmente selecionado, caso não tenha nenhum sendo hovereado.
+		if (UListDataObject_Base* SelectedItem = CommonListView_OptionsList->GetSelectedItem<UListDataObject_Base>())
+		{
+			// Atualiza as informações da DetailsView com base no Item atualmente Selecionado.
+			/* As informações são preenchidas no Data Registry */
+			DetailsView_ListEntryInfo->UpdateDetailsViewInfo(
+				SelectedItem, 
+				TryGetEntryWidgetClassName(SelectedItem)
+				);
+		}
+	}
 }
 
 void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
@@ -151,10 +176,26 @@ void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
 		return;
 	}
 	
-	const FString DebugString =
-	CastChecked<UListDataObject_Base>(InSelectedItem)->GetDataDisplayName().ToString() + 
-		TEXT(" was ") + 
-			(InSelectedItem ? TEXT("Selected") : TEXT("Unselected"));
+	// Atualiza as informações da DetailsView com base no Item atualmente Selecionado.
+	/* As informações são preenchidas no Data Registry */
+	DetailsView_ListEntryInfo->UpdateDetailsViewInfo(
+		CastChecked<UListDataObject_Base>(InSelectedItem), 
+		TryGetEntryWidgetClassName(InSelectedItem)
+		);
+}
+
+FString UWidget_OptionsScreen::TryGetEntryWidgetClassName(UObject* InOwningListItem) const
+{
+	// Tenta obter o Entry Widget correspondente ao DataObject fornecido.
+	// GetEntryWidgetFromItem faz o mapeamento DataObject → Entry Widget gerenciado internamente pela ListView.
+	if (UUserWidget* FoundEntryWidget = 
+		CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InOwningListItem))
+	{
+		// Retorna o nome da classe C++ do widget se o Entry foi encontrado.
+		return FoundEntryWidget->GetClass()->GetName();
+	}
 	
-	Debug::Print(DebugString);
+	// Fallback: item não possui entry widget ativo no momento.
+	// Pode ocorrer se o item estiver fora da área visível da ListView (reciclagem) ou se ainda não tiver sido renderizado.
+	return TEXT("Entry Widget Not Valid");
 }
