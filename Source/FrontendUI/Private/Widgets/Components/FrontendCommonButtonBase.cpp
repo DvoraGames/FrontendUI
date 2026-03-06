@@ -7,19 +7,32 @@
 // Função usada para aplicar o texto ao botão
 void UFrontendCommonButtonBase::SetButtonText(FText InText)
 {
-	// Verifica se o BindWidget existe e se InText não está vazio
+	// Só aplica se o BindWidget existe e o texto não está vazio
 	if (CommonTextBlock_ButtonText && !InText.IsEmpty())
 	{
-		// Aplica uppercase se configurado (bUpperCaseText), senão usa texto original
+		// Aplica uppercase se configurado, senão usa o texto original
 		CommonTextBlock_ButtonText->SetText(bUpperCaseText? InText.ToUpper() : InText);
 	}
+}
+
+FText UFrontendCommonButtonBase::GetButtonDisplayText() const
+{
+	// Se o BindWidget for valido
+	if (CommonTextBlock_ButtonText)
+	{
+		// Retorna o texto atualmente exibido no TextBlock vinculado
+		return CommonTextBlock_ButtonText->GetText();
+	}
+	
+	// Retorna FText vazio se o BindWidget não estiver disponível
+	return FText();
 }
 
 void UFrontendCommonButtonBase::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 	
-	// Define texto inicial usando valor padrão da propriedade ButtonText
+	// Aplica o valor padrão de ButtonText ao TextBlock antes de renderizar
 	SetButtonText(ButtonText);
 }
 
@@ -36,28 +49,26 @@ void UFrontendCommonButtonBase::NativeOnCurrentTextStyleChanged()
 	}
 }
 
-// Override chamado quando este botão recebe hover/foco.
 void UFrontendCommonButtonBase::NativeOnHovered()
 {
 	Super::NativeOnHovered();
 	
-	// Verifica se ButtonDescriptionText não está vazio, sem texto
+	// Só dispara se houver descrição configurada, evitando broadcast desnecessário
 	if (!ButtonDescriptionText.IsEmpty())
 	{
-		// Se tiver texto, dispara notificação global para atualizar a descrição do botão focado.
-		UFrontendUISubsystem::GetFrontendSubsystem(this)->OnButtonDescriptionTextUpdate.Broadcast(
+		// Notifica o subsystem para exibir a descrição deste botão em todos os listeners
+		UFrontendUISubsystem::Get(this)->OnButtonDescriptionTextUpdate.Broadcast(
 			this,
 			ButtonDescriptionText);
 	}
 }
 
-// Override chamado quando este botão perde hover/foco.
 void UFrontendCommonButtonBase::NativeOnUnhovered()
 {
 	Super::NativeOnUnhovered();
 	
-	// Dispara notificação global para limpar a descrição dos botões.
-	UFrontendUISubsystem::GetFrontendSubsystem(this)->OnButtonDescriptionTextUpdate.Broadcast(
+	// Limpa a descrição exibida notificando o subsystem com texto vazio
+	UFrontendUISubsystem::Get(this)->OnButtonDescriptionTextUpdate.Broadcast(
 			this,
 			FText::GetEmpty());
 }

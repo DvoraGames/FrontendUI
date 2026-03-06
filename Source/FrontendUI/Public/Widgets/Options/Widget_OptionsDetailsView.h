@@ -12,50 +12,52 @@ class UCommonLazyImage;
 class UCommonTextBlock;
 
 /**
- * Painel de detalhes das opções de configuração.
- * Recebe um UListDataObject_Base e exibe seus metadados informativos:
- */
+* UWidget_OptionsDetailsView
+*
+* Painel de detalhes das opções de configuração.
+* Recebe um UListDataObject_Base e exibe seus metadados informativos:
+* título, imagem, descrição, detalhes dinâmicos e motivo de desabilitação.
+*/
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UWidget_OptionsDetailsView : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
-	// Popula os Bound widgets com as informações do DataObject fornecido.
-	/* Chamado pela OptionsScreen ao detectar hover ou seleção de um item. */
+	// Popula os Bound Widgets com as informações do DataObject - chamado pela OptionsScreen ao hover ou seleção de um item.
 	void UpdateDetailsViewInfo(UListDataObject_Base* InDataObject, const FString& InEntryClassName = FString());
 	
-	// Limpa todos os campos do painel de detalhes.
-	/* Chamado quando nenhum item está hovereado/selecionado, ou ao trocar de aba na OptionsScreen. */
+	// Limpa todos os campos do painel - chamado ao trocar de aba ou quando nenhum item está hoverado/selecionado.
 	void ClearDetailsViewInfo() const;
 	
 protected:
 	//~ Begin UUserWidget Interface
-	// Função chamada na Inicialização do Widget. Usado para configurar estados iniciais dos campos
+	// Garante que o painel comece limpo antes de receber qualquer dado da OptionsScreen.
 	virtual void NativeOnInitialized() override;
 	//~ End UUserWidget Interface
 	
 private:
-	/***** Bound Widgets *****/
+	// ----------------------------------------------------------
+	// Bound Widgets
+	// ----------------------------------------------------------
+	
 	// Título da opção atualmente em foco.
 	UPROPERTY(meta = (BindWidget))
 	UCommonTextBlock* CommonTextBlock_Title;
 	
-	// Imagem ilustrativa da opção, carregada de forma lazy (assíncrona).
+	// Imagem ilustrativa da opção - carregada de forma lazy (assíncrona).
 	UPROPERTY(meta = (BindWidget))
 	UCommonLazyImage* CommonLazyImage_DescriptionImage;
 	
-	// Descrição estática da opção em RichText. Suporta formatação avançada (negrito, cor, ícones inline).
+	// Descrição estática da opção em RichText - suporta formatação avançada (negrito, cor, ícones inline).
 	UPROPERTY(meta = (BindWidget))
 	UCommonRichTextBlock* CommonRichTextBlock_Description;
 	
-	// Detalhes dinâmicos da opção em RichText. Atualizado com informações contextuais em tempo real.
+	// Detalhes dinâmicos da opção em RichText - atualizado com informações contextuais em tempo real.
 	UPROPERTY(meta = (BindWidget))
 	UCommonRichTextBlock* CommonRichTextBlock_DynamicDetails;
 	
-	/* Motivo pelo qual a opção está desabilitada, em RichText. Exibido apenas quando o DataObject indica que a opção 
-	está bloqueada (ex: "Requer reinicialização do jogo"). */
+	// Motivo pelo qual a opção está desabilitada em RichText - exibido quando o DataObject indica bloqueio
 	UPROPERTY(meta = (BindWidget))
 	UCommonRichTextBlock* CommonRichTextBlock_DisabledReason;
-	/***** Bound Widgets *****/
 };

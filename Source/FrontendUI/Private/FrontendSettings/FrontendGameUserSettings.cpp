@@ -7,33 +7,34 @@ void UFrontendGameUserSettings::ApplySettings(bool bCheckForCommandLineOverrides
 {
 	Super::ApplySettings(bCheckForCommandLineOverrides);
 	
-	// Chama a função para atualizar o idioma com base no idioma atual do arquivo .ini
+	// Reaplica o idioma salvo no .ini para garantir sincronismo após carregar as configurações
 	SetCurrentGameLanguage(GetCurrentGameLanguage());
 }
 
 UFrontendGameUserSettings* UFrontendGameUserSettings::Get()
 {
-	// Acessa as configurações globais de usuário a partir da Engine e faz o cast para essa classe customizada
 	if (GEngine)
 	{
+		// Acessa o GameUserSettings global da Engine e faz cast para a classe customizada
 		return CastChecked<UFrontendGameUserSettings>(GEngine->GetGameUserSettings());
 	}
 	
+	// Retorna nullptr se GEngine for invalida
 	return nullptr;
 }
 
 UFrontendGameUserSettings* UFrontendGameUserSettings::GetFrontendGameUserSettings()
 {
-	// Retorna a referência global — wrapper para uso em Blueprint.
+	// Wrapper do Get() para exposição ao Blueprint.
 	return Get();
 }
 
 
 void UFrontendGameUserSettings::SetCurrentGameLanguage(const FString& InNewLanguage)
 {
-	// Atualiza a variável com o novo valor recebido. Será salvo no .ini na próxima chamada de ApplySettings.
+	// Atualiza a variável com o novo valor recebido - será salvo no .ini na próxima chamada de ApplySettings.
 	CurrentGameLanguage = InNewLanguage;
 	
-	// Aplica o idioma trocando imediatamente a cultura (Idioma e Formatação).
+	// Aplica o idioma imediatamente, trocando a cultura ativa (idioma e formatação)
 	FInternationalization::Get().SetCurrentCulture(CurrentGameLanguage);
 }

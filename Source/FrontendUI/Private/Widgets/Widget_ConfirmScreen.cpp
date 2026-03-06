@@ -2,7 +2,7 @@
 
 #include "Widgets/Widget_ConfirmScreen.h"
 
-#include "FrontendSpacesHelper.h"
+#include "FrontendNamespacesHelper.h"
 
 #include "CommonTextBlock.h"
 #include "ICommonInputModule.h"
@@ -11,24 +11,26 @@
 
 using namespace FFrontendLocHelper;
 
-// Essa função cria um "pacote de dados" para o modal OK.
+// ---------------------------------------------------------
+// UConfirmScreenInfoObject — Factory Functions
+// ---------------------------------------------------------
+
+// Essa função cria um "pacote de dados" para o modal OK
 UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkScreen(const FText& InScreenTitle, const FText& InScreenMsg)
 {
-	// Cria um objeto vazio
+	// Cria o objeto de dados vazio
 	UConfirmScreenInfoObject* InfoObject = NewObject<UConfirmScreenInfoObject>();
 	
-	// Preenche título e mensagem do modal
+    // Preenche título e mensagem
 	InfoObject->ScreenTitle = InScreenTitle;
 	InfoObject->ScreenMessage = InScreenMsg;
 	
-	// Cria o botão do OK usando a Struct
-	FConfirmScreenButtonInfo OkButtonInfo;
-	// Aplica o que esse botão irá retornar ao clicar nele (Closed)
-	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Closed;
-	// Altera o texto do Botao para OK pegando da Tabela de strings
-	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");
+    // Cria o botão Ok — retorna Closed ao clicar
+	FConfirmScreenButtonInfo OkButtonInfo;										// Objeto Botao
+	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Closed;	// Retorno Botao
+	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");			// Nome Botao
 	
-	// Adiciona o botão na lista de botoes disponiveis no modal
+	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);
 	
 	// Retorna o pacote pronto
@@ -39,28 +41,24 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkScreen(const FText& 
 UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateYesNoScreen(const FText& InScreenTitle,
 	const FText& InScreenMsg)
 {
-	// Cria um objeto vazio
+	// Cria o objeto de dados vazio
 	UConfirmScreenInfoObject* InfoObject = NewObject<UConfirmScreenInfoObject>();
 	
-	// Preenche título e mensagem do modal
+    // Preenche título e mensagem
 	InfoObject->ScreenTitle = InScreenTitle;
 	InfoObject->ScreenMessage = InScreenMsg;
 	
-	// Cria o botão Yes usando a Struct
+    // Cria o botão Yes — retorna Confirmed ao clicar
 	FConfirmScreenButtonInfo YesButtonInfo;
-	// Aplica o que esse botão irá retornar ao clicar nele (Confirmed)
 	YesButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	// Altera o texto do Botao para Yes pegando da Tabela de strings
 	YesButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Yes");
 	
-	// Cria o botão No usando a Struct
+    // Cria o botão No — retorna Cancelled ao clicar
 	FConfirmScreenButtonInfo NoButtonInfo;
-	// Aplica o que esse botão irá retornar ao clicar nele (Cancelled)
 	NoButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	// Altera o texto do Botao para No pegando da Tabela de strings
 	NoButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.No");
 	
-	// Adiciona os botões na lista de botoes disponiveis no modal
+	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(YesButtonInfo);
 	InfoObject->AvailableScreenButtons.Add(NoButtonInfo);
 	
@@ -71,28 +69,24 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateYesNoScreen(const FTex
 UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkCancelScreen(const FText& InScreenTitle,
 	const FText& InScreenMsg)
 {
-	// Cria um objeto vazio
+	// Cria o objeto de dados vazio
 	UConfirmScreenInfoObject* InfoObject = NewObject<UConfirmScreenInfoObject>();
 	
-	// Preenche título e mensagem do modal
+    // Preenche título e mensagem
 	InfoObject->ScreenTitle = InScreenTitle;
 	InfoObject->ScreenMessage = InScreenMsg;
 	
-	// Cria o botão Ok usando a Struct
+    // Cria o botão Ok — retorna Confirmed ao clicar
 	FConfirmScreenButtonInfo OkButtonInfo;	
-	// Aplica o que esse botão irá retornar ao clicar nele (Confirmed)
 	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	// Altera o texto do Botao para Ok pegando da Tabela de strings
 	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");
 	
-	// Cria o botão Cancel usando a Struct
+    // Cria o botão Cancel — retorna Cancelled ao clicar
 	FConfirmScreenButtonInfo CancelButtonInfo;
-	// Aplica o que esse botão irá retornar ao clicar nele (Cancelled)
 	CancelButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	// Altera o texto do Botao para Cancel pegando da Tabela de strings
 	CancelButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Cancel");
 	
-	// Adiciona os botões na lista de botoes disponiveis no modal
+	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);
 	InfoObject->AvailableScreenButtons.Add(CancelButtonInfo);
 	
@@ -100,91 +94,81 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkCancelScreen(const F
 	return InfoObject;
 }
 
-// Função responsavel por configurar o modal: aplica dados e conecta callbacks dos botões
+// ---------------------------------------------------------
+// UWidget_ConfirmScreen
+// ---------------------------------------------------------
+
 void UWidget_ConfirmScreen::InitConfirmScreen(UConfirmScreenInfoObject* InScreenInfoObject,
 	TFunction<void(EConfirmScreenButtonType)> ClickedButtonCallback)
 {
-	// Verifica se todas as propriedades existem (crash se tiver alguma nula)
+	// Garante que todos os BindWidgets e o pacote de dados são válidos
 	check(InScreenInfoObject && CommonTextBlock_Title && CommonTextBlock_Message && DynamicEntryBox_Buttons);
 	
-	// Aplica o título e mensagem nos TextBlocks bindados
+	// Aplica título e mensagem nos TextBlocks vinculados
 	CommonTextBlock_Title->SetText(InScreenInfoObject->ScreenTitle);
 	CommonTextBlock_Message->SetText(InScreenInfoObject->ScreenMessage);
 	
-	// Verifica se existem botões antigos para limpar antes de criar novos
+	// Limpa botões antigos antes de recriar — evita duplicatas ao reutilizar o modal
 	if (DynamicEntryBox_Buttons->GetNumEntries() != 0)
 	{
-		// Reset limpa + remove callbacks antigos
+		// Itera sobre cada botão existente e desconecta os callbacks antes de destruí-los
 		DynamicEntryBox_Buttons->Reset<UFrontendCommonButtonBase>(
 			[](UFrontendCommonButtonBase& ExistingButton)
 			{
-				ExistingButton.OnClicked().Clear(); // Desconecta lambdas velhos (callbacks)
+				// Desconecta todos os lambdas vinculados ao OnClicked deste botão
+				ExistingButton.OnClicked().Clear();
 			}
 			);
 	}
 	
-	// Verifica se a lista de botões etá vazia, se não tiver crasha
+    // Garante que há pelo menos um botão para criar
 	check(!InScreenInfoObject->AvailableScreenButtons.IsEmpty());
 	
-	//Cria 1 botão por cada FConfirmScreenButtonInfo dentro do array de botões
+	// Cria 1 botão por cada FConfirmScreenButtonInfo no array
 	for (const FConfirmScreenButtonInfo& ButtonInfo : InScreenInfoObject->AvailableScreenButtons)
 	{
-		// Mapeia a Tecla/Botão do Hardware (ClickAction e BackAction) para o botão do modal
-		FDataTableRowHandle InputActionRowHandle;
-		
-		// Mapeia a Tecla/Botão do Hardware (ClickAction e BackAction) para o botão do modal usando o EnhancedInput
+		// Handle do InputAction que será vinculado ao botão (Enhanced Input)
 		UInputAction* InputActionHandle = nullptr;
 		
-		// Input para cada tipo de botão do modal
+		// Define o InputAction correto baseado no tipo do botão
 		switch (ButtonInfo.ConfirmScreenButtonType)
 		{
 		case EConfirmScreenButtonType::Cancelled:
-			// Se o botão modal for Cancelled, usa o Input BackAction (Ex. Gamepad: Face Right (B/Bolinha))
-			/* Permite usar o Input BackAction da DataTable para fazer a mesma função do botão do tipo Cancelled do modal */
-			InputActionRowHandle = ICommonInputModule::GetSettings().GetDefaultBackAction();
-			
-			/* Permite usar o InputAction (IA_UI_Back) para fazer a mesma função do botão do tipo Cancelled do modal */
-			InputActionHandle = ICommonInputModule::GetSettings().GetEnhancedInputBackAction();
-			break;
 		case EConfirmScreenButtonType::Closed:
-			// Se o botão modal for Closed, usa o Input BackAction (Ex. Gamepad: Face Right (B/Bolinha))
-			InputActionRowHandle = ICommonInputModule::GetSettings().GetDefaultBackAction();
-			
-			/* Permite usar o InputAction (IA_UI_Back) para fazer a mesma função do botão do tipo Closed do modal */
+			// Botões de cancelar/fechar usam o BackAction — ex: Gamepad B / Teclado ESC
 			InputActionHandle = ICommonInputModule::GetSettings().GetEnhancedInputBackAction();
 			break;
 		default:
 			break;
 		}
 		
-		// Cria botão dinamicamente no EntryBox
+		// Cria o botão dinamicamente no EntryBox
 		UFrontendCommonButtonBase* AddedButton = DynamicEntryBox_Buttons->CreateEntry<UFrontendCommonButtonBase>();
-		// Aplica o texto do botão atual do loop com o Texto que foi setado anteriormente nele
+		
+		// Aplica o texto no botão criado
 		AddedButton->SetButtonText(ButtonInfo.ButtonTextToDisplay);
-		// Aplica o Enhanced Input Action do botão atual do loop com o Input Action que foi setado acima
+        // Aplica o input action no botão criado
 		AddedButton->SetTriggeringEnhancedInputAction(InputActionHandle);
 		
-		// Lambda responsavel por adicionar a logica de Click do botão
+		// Lambda que executa ao clicar: dispara callback, fecha o modal e restaura o foco
 		AddedButton->OnClicked().AddLambda(
 			[ClickedButtonCallback, ButtonInfo, this]()
 			{
-				// Chama o callback do subsystem e passa o tipo do botão como resultado
+				// Retorna o tipo do botão clicado via callback
 				ClickedButtonCallback(ButtonInfo.ConfirmScreenButtonType);
 				
-				// Fecha modal
+				// Fecha o modal removendo-o do stack
 				DeactivateWidget();
 			});
 	}
 }
 
-// Sobrescreve foco CommonUI: sempre último botão
-// Fix Gamepad→Mouse→Gamepad: restaura foco modal após click fora
 UWidget* UWidget_ConfirmScreen::NativeGetDesiredFocusTarget() const
 {
-	// Verica se a quantidade de botões é diferente de 0
+	// Verica se existem botões na EntryBox
 	if (DynamicEntryBox_Buttons->GetNumEntries() != 0)
 	{
-		// Foca no ÚLTIMO botão criado
+		// Foca no último botão criado.
 		return DynamicEntryBox_Buttons->GetAllEntries().Last();
 	}
 	

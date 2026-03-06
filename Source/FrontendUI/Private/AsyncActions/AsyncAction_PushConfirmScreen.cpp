@@ -11,24 +11,25 @@ UAsyncAction_PushConfirmScreen* UAsyncAction_PushConfirmScreen::PushConfirmScree
 	FText InScreenTitle, FText InScreenMessage
 	)
 {
-	// Verifica se o GEngine é válido (necessário para obter o World)
+	// Verifica se a engine global está disponível.
 	if (GEngine)
 	{
-		// Obtém o World a partir do WorldContextObject, retorna null se falhar (sem crash)
+		// Loga o erro sem crash se o World não for encontrado
 		if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 		{
-			// Cria uma nova instância da Async Action usando NewObject
+            // Cria a instância da AsyncAction — ela gerencia toda a operação assíncrona
 			UAsyncAction_PushConfirmScreen* Node = NewObject<UAsyncAction_PushConfirmScreen>();
 			
-			Node->CachedOwningWorld = World;				// Armazena o World como ponteiro fraco para uso posterior
-			Node->CachedScreenType = ConfirmScreenType;		// Armazena o tipo de modal (Ok/YesNo/OkCancel)
-			Node->CachedScreenTitle = InScreenTitle;		// Armazena o título do modal
-			Node->CachedScreenMessage = InScreenMessage;    // Armazena a mensagem do modal
+			// Cacheia todos os parâmetros recebidos para uso posterior no Activate()
+			Node->CachedOwningWorld = World;
+			Node->CachedScreenType = ConfirmScreenType;
+			Node->CachedScreenTitle = InScreenTitle;
+			Node->CachedScreenMessage = InScreenMessage;
 			
-			// Registra a Async Action com o GameInstance para gerenciamento de lifecycle
+            // Registra com a GameInstance para garantir o gerenciamento correto de lifetime
 			Node->RegisterWithGameInstance(World);
 			
-			// Retorna o nó criado para ser usado no Blueprint
+			// Retorna a instância criada.
 			return Node;
 		}
 	}
@@ -41,10 +42,10 @@ void UAsyncAction_PushConfirmScreen::Activate()
 {
 	Super::Activate();
 	
-    // Obtém o FrontendUISubsystem do World armazenando o temporariamente
-	UFrontendUISubsystem* FrontendUISubsystem = UFrontendUISubsystem::GetFrontendSubsystem(CachedOwningWorld.Get());
+    // Obtém o FrontendUISubsystem do World cacheado
+	UFrontendUISubsystem* FrontendUISubsystem = UFrontendUISubsystem::Get(CachedOwningWorld.Get());
 	
-	// Solicita ao subsystem para criar e exibir o modal de confirmação de forma assíncrona
+	// Solicita ao subsystem a criação e exibição do modal de forma assíncrona
 	FrontendUISubsystem->PushConfirmScreenToModalStackAsync(
 		CachedScreenType,		// Tipo do modal (Ok/YesNo/OkCancel)
 		CachedScreenTitle,		// Título exibido no modal
@@ -52,10 +53,10 @@ void UAsyncAction_PushConfirmScreen::Activate()
 		// Lambda callback executado quando o usuário clica em um botão
 		[this](EConfirmScreenButtonType ClickedButtonType)
 		{
-			// Dispara o Event Dispatcher para notificar Blueprints sobre o botão clicado
+			// Dispara delegate para notificar Blueprints sobre o botão clicado
 			OnButtonClicked.Broadcast(ClickedButtonType);
 			
-			// Marca a async action como pronta para destruição, liberando recursos
+			// Finaliza a AsyncAction — libera memória automaticamente
 			SetReadyToDestroy();
 		}
 		);

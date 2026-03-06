@@ -12,41 +12,51 @@ class UListDataObject_Base;
 class UCommonTextBlock;
 
 /**
- * Widget base para todas as entradas exibidas dentro da ListView de opções.
- * 
- * Implementa a interface IUserObjectListEntry para receber um UListDataObject_Base
- * (os dados) e refleti-los visualmente (ex: atualizando o nome da configuração).
- * Subclasses (como Carousel, Slider) herdam daqui para adicionar interações específicas.
- */
+* UWidget_ListEntry_Base
+*
+* Widget base para todas as entradas exibidas dentro da ListView de opções.
+* Implementa a interface IUserObjectListEntry para receber um UListDataObject_Base
+* e refletir seus dados visualmente.
+*
+* Subclasses como Carousel e Slider herdam daqui para adicionar interações específicas.
+*/
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY()
 	
 public:
-	// Evento Blueprint chamado quando o estado de hover muda. Implementar no Blueprint filho para atualizar feedback visual
+	// Evento Blueprint disparado quando o hover do item muda.
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "On Item Hovered"))
 	void BP_OnItemHovered(bool bIsHovered, bool bIsEntryWidgetStillSelected);
 	
-	// Chamado externamente para notificar que o estado de hover deste item mudou.
-	// Delega ao evento Blueprint BPOnItemHovered, passando também se o item está atualmente selecionado.
+	// Repassa o estado de hover para o Blueprint, com o estado atual de seleção.
 	void NativeOnItemHovered(bool bIsHovered);
-	
+
 protected:
+	// Retorna o widget que deve receber foco ao navegar com Gamepad.
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "Get Widget To Focus For Gamepad"))
+	UWidget* BP_GetWidgetToFocusForGamepad() const;
+	
 	//~ Begin IUserObjectListEntry Interface
-	/* Função nativa da ListView disparada quando esta entrada recebe seu objeto de dados. 
-	Converte o UObject genérico e repassa para OnOwningListDataObjectSet. */
+	// Recebe o UObject da ListView, converte para DataObject e inicia a configuração visual desta entry.
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
+	
+	// Chamado quando esta entry é liberada pela ListView - usado para limpeza de estado visual transitório.
+	virtual void NativeOnEntryReleased() override;
 	//~ End IUserObjectListEntry Interface
 	
-	/*
-	 * Chamado logo após a ListView injetar os dados nesta entrada.
-	 * Na classe base, atualiza o nome exibido e faz o bind no delegate de modificação.
-	 * Subclasses DEVEM chamar Super e implementar suas formatações específicas.
-	 */
+	//~ Begin UUserWidget Interface
+	// Redireciona o foco para um widget interno apropriado ao usar Gamepad.
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+	//~ Begin UUserWidget Interface
+
+	//Chamado logo após a ListView injetar os dados nesta entrada.
+	/* Na classe base, atualiza o nome exibido e faz o bind no delegate de modificação.
+	 * Subclasses devem chamar Super e implementar suas formatações específicas. */
 	virtual  void OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject);
 	
-	// Handler acionado sempre que o DataObject vinculado a esta entrada sofrer alterações
+    // Handler chamado quando o DataObject associado sofre alguma modificação.
 	virtual void OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData, 
 		EOptionsListDataModifyReason ModifyReason);
 	
@@ -55,11 +65,14 @@ protected:
 	void SelectThisEntryWidget() const;
 	
 private:
-	/***** Bind Widgets *****/
-	// Widget de Texto que exibe o nome da configuração (ex: "Qualidade Gráfica", "Volume").
+	
+	// ----------------------------------------------------------
+	// Bound Widget
+	// ----------------------------------------------------------
+	
+	// Texto que exibe o nome da configuração nesta entry. (ex: "Qualidade Gráfica", "Volume").
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess = "true"))
 	UCommonTextBlock* CommonText_SettingDisplayName;
-	/***** Bind Widgets *****/
 
 
 };

@@ -12,21 +12,21 @@
 UUserWidget& UFrontendCommonListView::OnGenerateEntryWidgetInternal(UObject* Item, 
 	TSubclassOf<UUserWidget> DesiredEntryClass, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	// No editor (design time), usa o comportamento padrão sem mapeamento customizado
+	// Em design time não há mapeamento disponível - usa o comportamento padrão
 	if (IsDesignTime())
 	{
 		return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
 	}
 	
-	// Consulta o Data Asset para encontrar o widget correspondente ao tipo do item
+	// Consulta o DataAsset para encontrar o widget correspondente ao tipo do DataObject
 	if (TSubclassOf<UWidget_ListEntry_Base> FoundWidgetClass = 
 		DataListEntryMapping->FindEntryWidgetClassByDataObject(CastChecked<UListDataObject_Base>(Item)))
 	{
-        // Widget encontrado no mapeamento: gera a linha de configuração da lista com o widget correto
+		// Widget encontrado no mapeamento - gera a entrada tipada com o widget correto
 		return GenerateTypedEntry<UWidget_ListEntry_Base>(FoundWidgetClass, OwnerTable);
 	}
 	
-	// Fallback: se não encontrou no mapeamento, usa o widget padrão da lista
+	// Fallback - nenhum mapeamento encontrado, usa o widget padrão da lista
 	return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
 }
 
@@ -36,6 +36,7 @@ void UFrontendCommonListView::ValidateCompiledDefaults(class IWidgetCompilerLog&
 {
 	Super::ValidateCompiledDefaults(CompileLog);
 	
+	// Emite erro de compilação se o DataAsset obrigatório não estiver configurado
 	if (!DataListEntryMapping)
 	{   
 		// Emite erro de compilação informando que o Data Asset é obrigatório

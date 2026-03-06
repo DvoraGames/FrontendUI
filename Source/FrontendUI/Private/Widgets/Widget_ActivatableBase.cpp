@@ -6,13 +6,13 @@
 
 AFrontendPlayerController* UWidget_ActivatableBase::GetOwningFrontendPC()
 {
-	// Verifica se CachedOwningFrontendPC não é valido
+	// Só faz o cast se o cache ainda não foi preenchido ou foi invalidado
 	if (!CachedOwningFrontendPC.IsValid())
 	{
-		// Se estiver vazio, tenta fazer um cast do Player Controller para a classe AFrontendPlayerController e armazena na variavel
+		// Tenta converter o PlayerController dono para AFrontendPlayerController e armazena o resultado
 		CachedOwningFrontendPC = GetOwningPlayer<AFrontendPlayerController>();
 	}
 	
-	// Se CachedOwningFrontendPC for valido retorna ele, caso contrario, retorna nullptr
+	// Retorna o cache se for válido, nullptr caso o cast tenha falhado
 	return CachedOwningFrontendPC.IsValid() ? CachedOwningFrontendPC.Get() : nullptr;
 }

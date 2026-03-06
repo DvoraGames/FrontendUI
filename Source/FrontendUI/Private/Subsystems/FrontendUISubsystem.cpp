@@ -13,44 +13,47 @@
 #include "Widgets/Widget_PrimaryLayout.h"
 
 // Função usada para "pegar" o Subsystem do Frontend no c++
-UFrontendUISubsystem* UFrontendUISubsystem::GetFrontendSubsystem(const UObject* WorldContextObject)
+UFrontendUISubsystem* UFrontendUISubsystem::Get(const UObject* WorldContextObject)
 {
-	// Verifica se GEngine é valida
+	// Verifica se a engine global está disponível.
 	if (GEngine)
 	{
-		// Obtém o World (mapa atual) a partir do objeto de contexto, caso não encontre lança um erro fatal
-		UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::Assert);
+		// Obtém o World a partir do contexto — erro fatal se não encontrar
+		const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::Assert);
 		
-		// Retorna a instância do subsystem UFrontendUISubsystem do GameInstance atual
+		// Retorna a instância do subsystem da GameInstance atual
 		return UGameInstance::GetSubsystem<UFrontendUISubsystem>(World->GetGameInstance());
 	}
 	
+	// Retorna nullptr.
 	return nullptr;
 }
 
 bool UFrontendUISubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-	// Converte e Verifica se NÃO é uma instância de servidor dedicado, caso a conversão falhe, causará um crash
+	// Converte Outer para UGameInstance (crasha se falhar) e verifica se NÃO é servidor dedicado
 	if (!CastChecked<UGameInstance>(Outer)->IsDedicatedServerInstance())
 	{
-		// Busca todas as classes derivadas da classe deste objeto, neste caso o subsistema
+		// Array para armazenar as subclasses deste subsistem
 		TArray<UClass*> FoundClasses;
+		
+		// Busca subclasses deste subsystem e armazena no array se encontrar
 		GetDerivedClasses(GetClass(), FoundClasses);
 		
-		// Só cria o subsistema se o TArray estiver vazio, ou seja, se não encontrou uma classe derivada desta
+		// Só cria se não houver subclasse dentro do array - evita duplicata com uma versão derivada
 		return FoundClasses.IsEmpty();
 	}
 	
-	// Retorna false se for um servidor dedicado, ou seja, nào cria o subsistema da UI
+	// Retorna false se for servidor dedicado - não cria o subsystem de UI
 	return false;
 }
 
 void UFrontendUISubsystem::RegisterCreatedPrimaryLayoutWidget(UWidget_PrimaryLayout* InCreatedWidget)
 {
-	// Verifica se o parametro InCreatedWidget é valido, caso contrario crasha o jogo
+	// Garante que o widget é válido antes de registrar
 	check(InCreatedWidget);
 	
-	// Atribui InCreatedWidget a variavel CreatedPrimaryLayout
+	// Armazena a referência do PrimaryLayout (InCreatedWidget)
 	CreatedPrimaryLayout = InCreatedWidget;
 }
 
@@ -60,35 +63,33 @@ void UFrontendUISubsystem::PushSoftWidgetToStackAsync(
 	TFunction<void(EAsyncPushWidgetState, UWidget_ActivatableBase*)> AsyncPushStateCallback
 	)
 {
-	// Verifica se o parametro InSoftWidget Não é Nulo, caso contrario crasha
+	// Garante que a soft reference não é nula
 	check(!InSoftWidgetClass.IsNull());
 	
-	// Solicita carregamento assíncrono do asset representado por InSoftWidgetClass.
-	/* Isso significa que o asset (classe do widget) será carregado em segundo plano e o código dentro do lambda rodará apenas após o carregamento terminar. */
+	// Solicita carregamento assíncrono - o lambda roda somente após o asset ser carregado
 	UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InSoftWidgetClass.ToSoftObjectPath(), 
 		FStreamableDelegate::CreateLambda(
 			[InSoftWidgetClass, this, InWidgetStackTag, AsyncPushStateCallback]()
 			{
-				/* Obtém a classe carregada do asset. Após o carregamento assíncrono, esse ponteiro será válido se o asset foi carregado corretamente. */
+				// Obtém a classe carregada do asset após o carregamento - será válido se foi carregado corretamente.
 				UClass* LoadedWidgetClass = InSoftWidgetClass.Get();
 				
-				/* Verifica se a classe foi carregada com sucesso e se o layout primário foi criado antes de continuar, caso contrario crasha. */
+				// Garante que a classe foi carregada e o PrimaryLayout existe
 				check(LoadedWidgetClass && CreatedPrimaryLayout);
 				
-				/* Busca o container (stack) de widgets pelo tag informado. Usado para organizar e gerenciar múltiplos widgets de forma dinâmica. */
+				// Busca o container stack pela tag informada
 				UCommonActivatableWidgetContainerBase* FoundWidgetStack = CreatedPrimaryLayout->FindWidgetStackByTag(InWidgetStackTag);
 
-				// Adiciona ao stack encontrado um novo widget do tipo UWidget_ActivatableBase. 
+				// Adiciona o widget a stack e executa o callback antes do push
 				UWidget_ActivatableBase* CreatedWidget = FoundWidgetStack->AddWidget<UWidget_ActivatableBase>(
 					LoadedWidgetClass, 
 					[AsyncPushStateCallback](UWidget_ActivatableBase& CreatedWidgetInstance)
 					{
-						// Chama callback informando que o widget foi criado, mas ainda não está no stack. 
-						// Serve para executar lógica customizada antes de realmente inserir o widget no container.
+						// Estágio 1: widget criado, ainda não inserido - dispara callback para setup
 						AsyncPushStateCallback(EAsyncPushWidgetState::OnCreatedBeforePush, &CreatedWidgetInstance);
 					});
 				
-				// Chama callback indicando que o widget foi inserido no stack e está pronto para uso.
+				// Estágio 2: widget inserido no stack e ativo
 				AsyncPushStateCallback(EAsyncPushWidgetState::AfterPush, CreatedWidget);
 			}
 		));
@@ -99,22 +100,22 @@ void UFrontendUISubsystem::PushConfirmScreenToModalStackAsync(
 	const FText& InScreenTitle, const FText& InScreenMsg,
 	TFunction<void(EConfirmScreenButtonType)> ButtonClickedCallback)
 {
-	// Cria uma variável vazia para receber o pacote do switch
+	// Variável para receber o pacote de dados do modal
 	UConfirmScreenInfoObject* CreatedInfoObject = nullptr;
 	
-	// Cria pacote baseado no tipo do modal escolhido
+	// Cria o pacote correto baseado no tipo de modal solicitado
 	switch (InScreenType)
 	{
 	case EConfirmScreenType::Ok:
-		// Cria do tipo Ok
+		// Cria Modal do tipo Ok
 		CreatedInfoObject = UConfirmScreenInfoObject::CreateOkScreen(InScreenTitle, InScreenMsg);
 		break;
 	case EConfirmScreenType::YesNo:
-		// Cria do tipo YesNo
+		// Cria Modal do tipo YesNo
 		CreatedInfoObject = UConfirmScreenInfoObject::CreateYesNoScreen(InScreenTitle, InScreenMsg);
 		break;
 	case EConfirmScreenType::OkCancel:
-		// Cria do tipo OkCancel
+		// Cria Modal do tipo OkCancel
 		CreatedInfoObject = UConfirmScreenInfoObject::CreateOkCancelScreen(InScreenTitle, InScreenMsg);
 		break;
 	case EConfirmScreenType::Unknown:
@@ -123,20 +124,19 @@ void UFrontendUISubsystem::PushConfirmScreenToModalStackAsync(
 		break;
 	}
 	
-	// Verifica se o CreatedInfoObject é valido, caso ainda esteja vazio crasha
+	// Garante que o pacote foi criado com sucesso
 	check(CreatedInfoObject);
 	
-	// Faz o Push Assincrono da ConfirmationScreen para a Stack Modal
+	// Faz o push assíncrono do ConfirmScreen no stack Modal
 	PushSoftWidgetToStackAsync(
-		FrontendGameplayTags::Frontend_WidgetStack_Modal,	// Gameplay Tag do Stack
-		UFrontendFunctionLibrary::GetFrontendSoftWidgetClassByTag(FrontendGameplayTags::Frontend_Widget_ConfirmScreen), // WidgetConfirmScreen class
-		// CALLBACK ANTES/DEPOIS do PUSH (roda quando widget carrega)
+		FrontendGameplayTags::Frontend_WidgetStack_Modal,
+		UFrontendFunctionLibrary::GetFrontendSoftWidgetClassByTag(FrontendGameplayTags::Frontend_Widget_ConfirmScreen),
 		[CreatedInfoObject, ButtonClickedCallback](EAsyncPushWidgetState InPushState, UWidget_ActivatableBase* PushedWidget)
 		{
-			// Verifica se o estado do Push ainda é BeforePush (Antes push)
+			// Estágio 1: antes do push - inicializa o modal com os dados e conecta o callback
 			if (InPushState == EAsyncPushWidgetState::OnCreatedBeforePush)
 			{
-				// Tenta converter (Cast) o PushedWidget em UWidget_ConfirmScreen, caso falhe crasha
+				// Tenta converter (Cast) o PushedWidget em UWidget_ConfirmScreen, crasha caso falhe
 				UWidget_ConfirmScreen* CreatedConfirmScreen = CastChecked<UWidget_ConfirmScreen>(PushedWidget);
 				
 				// Inicializa o modal: aplica dados (title/botões) e conecta callback de resultado
@@ -146,10 +146,9 @@ void UFrontendUISubsystem::PushConfirmScreenToModalStackAsync(
 		);
 }
 
-// Função para adicionar o Input Mapping Context global da UI via Player Controller
 void UFrontendUISubsystem::AddGlobalInputMappingContext(AFrontendPlayerController* FrontendPC, int32 Priority)
 {
-	// Verifica se o Player Controller é valido, caso contrario crasha e mostra a menssagem
+	// Garante que o PlayerController é válido
 	checkf(FrontendPC, TEXT("Player Controller not found"));
 	
 	// Verifica se o GlobalIMC foi configurado no FrontendPC.
@@ -162,7 +161,7 @@ void UFrontendUISubsystem::AddGlobalInputMappingContext(AFrontendPlayerControlle
 			if (UEnhancedInputLocalPlayerSubsystem* EIS = LocalPlayer->
 						GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				// Adiciona o Input Mapping Context ao subsystem com a prioridade especificada
+				// Adiciona o IMC ao Enhanced Input com a prioridade especificada
 				EIS->AddMappingContext(FrontendPC->GetGlobalIMC(), Priority);
 			}
 		}
@@ -170,10 +169,9 @@ void UFrontendUISubsystem::AddGlobalInputMappingContext(AFrontendPlayerControlle
 
 }
 
-// Função para remover o Input Mapping Context global da UI
 void UFrontendUISubsystem::RemoveGlobalInputMappingContext(AFrontendPlayerController* FrontendPC)
 {
-	// Verifica se o Player Controller é valido, caso contrario crasha e mostra a menssagem
+    // Garante que o PlayerController é válido
 	checkf(FrontendPC, TEXT("Player Controller not found"));
 	
 	// Verifica se o GlobalIMC foi configurado no FrontendPC.
@@ -186,7 +184,7 @@ void UFrontendUISubsystem::RemoveGlobalInputMappingContext(AFrontendPlayerContro
 			if (UEnhancedInputLocalPlayerSubsystem* EIS = LocalPlayer->
 						GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				// Remove o Input Mapping Context do subsystem
+				// Remove o IMC do Enhanced Input
 				EIS->RemoveMappingContext(FrontendPC->GetGlobalIMC());
 			}
 		}

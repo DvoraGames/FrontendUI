@@ -9,24 +9,36 @@
 
 class UCommonActivatableWidgetContainerBase;
 
+
+/**
+* UWidget_PrimaryLayout
+*
+* Widget raiz da UI do Frontend - ponto de entrada de todos os Widget Stacks.
+* Armazena e gerencia um TMap de GameplayTag → WidgetStack, permitindo que o
+* FrontendUISubsystem faça push de widgets nos stacks corretos por tag.
+*
+* Os stacks são registrados via Blueprint ao inicializar o layout.
+*/
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UWidget_PrimaryLayout : public UCommonUserWidget
 {
 	GENERATED_BODY()
 	
 public:
-	// Função Getter responsavel por procurar o Widget Stack usando a GamplayTag
+	// Busca e retorna o Widget Stack correspondente à GameplayTag informada.
 	UCommonActivatableWidgetContainerBase* FindWidgetStackByTag(const FGameplayTag& InTag) const;
 
 protected:
-	// Função responsavel por registrar os Widgets Stacks ao TMap (RegisterWidgetStackMap)
+	// Registra um Widget Stack no TMap vinculando-o à sua GameplayTag.
 	UFUNCTION(BlueprintCallable)
-	void RegisterWidgetStack(UPARAM(meta = (Categories= "Frontend.WidgetStack"))FGameplayTag InStackTag, UCommonActivatableWidgetContainerBase* InStack);
-	// UPARAM, neste caso permite a escolha no seletor apenas de Tags relacionadas ao WidgetStack
+	void RegisterWidgetStack(UPARAM(meta = 
+		(Categories= "Frontend.WidgetStack"))FGameplayTag InStackTag, // Tag filtrada para Frontend.WidgetStack
+		UCommonActivatableWidgetContainerBase* InStack);
 
 private:
-	// Propriedade para armazenar um Cache temporário dos widgets registrados.
-	// Uma propriedade transitória é temporária e não persiste, seu valor é redefinido a cada carregamento.
-	UPROPERTY(Transient) 
+	//? Transient: não persiste entre sessões, reconstruído a cada carregamento do widget.
+
+	// TMap que associa cada GameplayTag ao seu Widget Stack correspondente.
+	UPROPERTY(Transient)
 	TMap<FGameplayTag, UCommonActivatableWidgetContainerBase*> RegisterWidgetStackMap; 
 };

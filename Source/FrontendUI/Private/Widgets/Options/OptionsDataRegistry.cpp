@@ -3,7 +3,7 @@
 
 #include "Widgets/Options/OptionsDataRegistry.h"
 
-#include "FrontendSpacesHelper.h"
+#include "FrontendNamespacesHelper.h"
 #include "FrontendSettings/FrontendGameUserSettings.h"
 #include "Internationalization/Culture.h"
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
@@ -19,9 +19,9 @@ converte para FString e inicializa o Helper inteligente. */
 #define  MAKE_OPTIONS_DATA_CONTROL(SetterOrGetterFuncName) \
 	MakeShared<FOptionsDataInteractionHelper>(GET_FUNCTION_NAME_STRING_CHECKED(UFrontendGameUserSettings, SetterOrGetterFuncName))
 
-// Inicializa o catálogo criando todas as abas (e seus itens internos)
 void UOptionsDataRegistry::InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlayer)
-{
+{    
+	// Inicializa todas as abas em sequência
 	InitGamePlayCollectionTab();
 	InitAudioCollectionTab();
 	InitVideoCollectionTab();
@@ -31,25 +31,26 @@ void UOptionsDataRegistry::InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlay
 TArray<UListDataObject_Base*> UOptionsDataRegistry::
 GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const
 {
-	// Encontra a coleção (aba) cujo DataID corresponde ao TabID selecionado
+	// Busca no array a aba cujo DataID corresponde ao TabID solicitado
 	UListDataObject_Collection* const* FoundTabCollectionPtr = RegisteredOptionsTabCollections.FindByPredicate(
 		[InSelectedTabID](UListDataObject_Collection* AvailableTabCollection)->bool
 		{
+			// Retorna true quando o DataID da aba for igual ao TabID buscado
 			return AvailableTabCollection->GetDataID() == InSelectedTabID;
 		}
 		);
 	
-	// Garante que o TabID é válido; se não crasha com mensagem do erro
+	// Garante que o TabID é válido - crasha com mensagem de erro se não encontrar
 	checkf(FoundTabCollectionPtr, TEXT("No valid Tab found under the ID %s"), *InSelectedTabID.ToString())
 	
-	// Retorna a lista de itens (opções) que pertencem a aba
+	// Retorna a lista de DataObjects (opções) da aba encontrada
 	return (*FoundTabCollectionPtr)->GetAllChildListData();
 }
 
 // Cria aba "Gameplay"
 void UOptionsDataRegistry::InitGamePlayCollectionTab()
 {
-	// Cria a instância da "aba" Gameplay como uma coleção (ela vai conter várias opções/entradas)
+	// Cria a instância da "aba" Gameplay como uma coleção - ela agrupa várias opções/entradas.
 	UListDataObject_Collection* GameplayTabCollection = NewObject<UListDataObject_Collection>();
 	
     // Identificação interna da aba (usado para seleção/busca)
@@ -66,7 +67,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 	*/
 	
 	
-	/** Game Difficulty Option **/
+	/*** Game Difficulty Option ***/
 	{
 		// Cria a opção de dificuldade do tipo carrossel (várias opções navegáveis)
 		UListDataObject_Carousel* GameDifficulty = NewObject<UListDataObject_Carousel>();
@@ -86,6 +87,9 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		GameDifficulty->AddDynamicOption(TEXT("Hard"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptHard"));
 		GameDifficulty->AddDynamicOption(TEXT("Expert"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptExpert"));
 		
+		// Define "Normal" como a opção padrão
+		GameDifficulty->SetDefaultValueFromString(TEXT("Normal"));
+		
 		// Liga o DataObject da UI aos Getters/Setters do GameUserSettings via Reflection (usando a Macro)
 		GameDifficulty->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameDifficulty));
 		GameDifficulty->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentGameDifficulty));
@@ -97,7 +101,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		GameplayTabCollection->AddChildListData(GameDifficulty);
 	}
 	
-	/** Game Language Option **/
+	/*** Game Language Option ***/
 	{
 		// Cria a opção de idioma do tipo carrossel (várias opções navegáveis)
 		UListDataObject_Carousel* GameLanguage = NewObject<UListDataObject_Carousel>();
@@ -131,6 +135,12 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 			// Adiciona a opção ao Rotator da Entry
 			GameLanguage->AddDynamicOption(Code, NativeName);
 		}
+
+		// Pega o codigo do idioma do sistema operacional
+		const FString OSLanguageCode = FInternationalization::Get().GetDefaultLanguage()->GetName();
+		
+		// Define o idioma do sistema como o valor padrão
+		GameLanguage->SetDefaultValueFromString(OSLanguageCode); 
 		
 		// Liga o DataObject da UI aos Getters/Setters do GameUserSettings via Reflection (usando a Macro)
 		GameLanguage->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameLanguage));

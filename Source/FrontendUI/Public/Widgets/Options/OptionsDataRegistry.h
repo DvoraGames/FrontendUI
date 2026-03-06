@@ -15,6 +15,16 @@ class UListDataObject_Collection;
  *
  * Obs: Não é singleton de verdade, mas se comporta como um "único ponto de verdade" para essas opções.
  */
+
+/**
+* UOptionsDataRegistry
+*
+* Registry central de opções do Frontend - cria e registra todas as abas
+* (Gameplay, Audio, Video, Controls) e seus DataObjects filhos.
+*
+* Instanciado pela OptionsScreen via lazy initialization e destruído junto com ela.
+* Expõe métodos para a tela obter as abas registradas e os itens de cada aba.
+*/
 UCLASS()
 class FRONTENDUI_API UOptionsDataRegistry : public UObject
 {
@@ -22,23 +32,29 @@ class FRONTENDUI_API UOptionsDataRegistry : public UObject
 	
 	
 public:
-	// Esta função é chamada pela Options Screen logo após o objeto UOptionsDataRegistry ser criado
+	// Inicializa o catálogo criando todas as abas e seus itens - chamado pela OptionsScreen logo após criar o Registry.
 	void InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlayer);
 	
-	// OptionsScreen itera aqui pra pegar Gameplay/Audio/Video/Control e criar botões das abas
+	// Retorna o array com todas as abas registradas - usado pela OptionsScreen para criar os botões do TabList.
 	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollections; }
 	
-	// Retorna os itens (entradas) da aba selecionada, identificada pelo TabID.
+	// Retorna os DataObjects (opções) da aba identificada pelo TabID - usado pela OptionsScreen para popular a ListView.
 	TArray<UListDataObject_Base*> GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const;
 	
 private:
-	// Funções privadas que criam cada aba específica e adicionam no array
+	// Cria e registra a aba Gameplay com suas opções
 	void InitGamePlayCollectionTab();
+	
+	// Cria e registra a aba Audio
 	void InitAudioCollectionTab();
+	
+	// Cria e registra a aba Video
 	void InitVideoCollectionTab();
+	
+	// Cria e registra a aba Controls
 	void InitControlCollectionTab();
 	
-	// Array final com ponteiros para as 4 abas: [Gameplay, Audio, Video, Controls]
+	// Array com as abas registradas - Transient, reconstruído a cada sessão.
 	UPROPERTY(Transient)
 	TArray<UListDataObject_Collection*> RegisteredOptionsTabCollections;
 };

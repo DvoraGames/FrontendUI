@@ -8,12 +8,13 @@
 
 void UFrontendTabListWidgetBase::RequestRegisterTab(const FName& InTabID, const FText& InTabDisplayName)
 {
-	// Delega pro CommonTabListWidgetBase: cria/registra o botão usando TabButtonEntryWidgetClass
+	// Delega ao CommonTabListWidgetBase a criação e registro do botão da aba com a classe configurada
 	RegisterTab(InTabID, TabButtonEntryWidgetClass, nullptr);
 
+	// Busca o botão da aba recém-criado
 	if (UFrontendCommonButtonBase* FoundButton = Cast<UFrontendCommonButtonBase>(GetTabButtonBaseByID(InTabID)))
 	{
-		// Pega o botão criado e seta o texto ("Gameplay", "Audio", etc)
+		// Aplica o texto da aba recem criada (ex: "Gameplay", "Audio")
 		FoundButton->SetButtonText(InTabDisplayName);
 	}
 }
@@ -24,6 +25,7 @@ void UFrontendTabListWidgetBase::ValidateCompiledDefaults(class IWidgetCompilerL
 {
 	Super::ValidateCompiledDefaults(CompileLog);
 	
+	// Emite erro de compilação se a classe de botão da aba não estiver configurada no Blueprint filho
 	if (!TabButtonEntryWidgetClass)
 	{
 		CompileLog.Error(FText::FromString(

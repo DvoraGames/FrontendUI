@@ -7,7 +7,7 @@
 
 void UFrontendCommonRotator::SetSelectedOptionByText(const FText& InTextOption)
 {
-	// Retorna o índice do primeiro item cujo predicado (lambda) retornar true
+	// Busca e armazena o índice da primeira opção cujo texto seja igual ao procurado
 	const int32 FoundIndex = TextLabels.IndexOfByPredicate(
 		[InTextOption](const FText& TextItem)->bool
 		{
@@ -16,16 +16,15 @@ void UFrontendCommonRotator::SetSelectedOptionByText(const FText& InTextOption)
 		}
 		);
 	
-	// Se encontrou a opção na lista:
+	// Se encontrou:
 	if (FoundIndex != INDEX_NONE)
 	{
-		// Define o índice selecionado (atualiza a lógica interna e dispara eventos)
+		// Atualiza o índice interno e dispara os eventos do rotator
 		SetSelectedItem(FoundIndex);
 	}
 	else
 	{
-		/* Fallback: Se a opção não existe na lista (ex: valor customizado ou antigo),
-		força o texto diretamente no componente visual para garantir que o usuário veja o valor. */
+		// Fallback - valor não existe na lista, força o texto diretamente no componente visual
 		MyText->SetText(InTextOption);
 	}
 }

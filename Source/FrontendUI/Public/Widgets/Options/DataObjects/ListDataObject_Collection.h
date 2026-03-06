@@ -7,26 +7,30 @@
 #include "ListDataObject_Collection.generated.h"
 
 /**
- * 
- */
+* UListDataObject_Collection
+*
+* DataObject estrutural que representa uma aba de opções.
+* Não armazena valor - apenas agrupa opções filhas (ex: Volume, SFX, Dificuldade).
+*/
 UCLASS()
 class FRONTENDUI_API UListDataObject_Collection : public UListDataObject_Base
 {
 	GENERATED_BODY()
 	
 public:
-	// Adiciona uma opção filha (Volume, SFX, etc) na aba
+	// Inicializa e registra uma opção filha dentro desta aba.
 	void AddChildListData(UListDataObject_Base* InChildListData);
 	
 	//~ Begin UListDataObject_Base Interface
-	// Retorna array com TODAS minhas opções filhas da ABA (override da base que era vazia)
-	virtual TArray<UListDataObject_Base*> GetAllChildListData() const override;    
-	// Retorna true se tem pelo menos 1 opção filha (override da base que era false)
+	// Retorna o array com todas as opções filhas desta aba.
+	virtual TArray<UListDataObject_Base*> GetAllChildListData() const override;   
+	
+    // Retorna true se esta aba possui pelo menos uma opção filha.
 	virtual bool HasAnyChildListData() const override;
 	//~ End UListDataObject_Base Interface
 	
 private:
-	// Lista privada das opções da Aba
+	// Lista de opções pertencentes a esta aba - reconstruída em runtime, não serializada.
 	UPROPERTY(Transient)
 	TArray<UListDataObject_Base*> ChildListDataArray;
 };

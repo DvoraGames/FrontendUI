@@ -8,9 +8,16 @@
 #include "FrontendDeveloperSettings.generated.h"
 
 class UWidget_ActivatableBase;
+
 /**
- * 
- */
+* UFrontendDeveloperSettings
+*
+* Configurações do Frontend expostas no Project Settings (aba "Frontend UI Settings").
+* Permite mapear GameplayTags a classes de widgets e imagens via TMap,
+* centralizando referências que seriam hard references se declaradas diretamente nas classes.
+*
+* Os valores são salvos em DefaultGame.ini e acessados via GetDefault<UFrontendDeveloperSettings>().
+*/
 
 // Configura classe como Developer Settings para Project Settings
 UCLASS(
@@ -22,11 +29,27 @@ class FRONTENDUI_API UFrontendDeveloperSettings : public UDeveloperSettings
 	GENERATED_BODY()
 	
 public:
+	/* TMap de GameplayTag e Soft Class de Widget - Usado pela FrontendFunctionLibrary para buscar e carregar widgets 
+	 * assincronamente por tag. */ 
+	/// Configurado no Project Settings - cada entrada associa uma tag Frontend.Widget à sua classe.
 	UPROPERTY(
-		Config, // Salva/carrega valor do DefaultGame.ini (devido ao Config=Game da UCLASS)
-		EditAnywhere, // Editável em: Project Settings + instâncias da classe + Blueprints Defaults
+		Config, // Salva/carrega valor do DefaultGame.ini
+		EditAnywhere, // Editável em: Project Settings, instâncias da classe e Blueprints Defaults
 		Category="Widget Reference", // Agrupa na aba "Widget Reference" no Project Settings
-		meta=(ForceInlineRow, // TMap aparece EXPANDIDO (uma linha por entrada) ao invés de collapsed
+		meta=(
+			ForceInlineRow, // TMap aparece expandido - uma linha por entrada ao invés de collapsed
 			Categories = "Frontend.Widget")) // Filtra GameplayTags apenas da categoria "Frontend.Widget"
 	TMap<FGameplayTag, TSoftClassPtr<UWidget_ActivatableBase>> FrontendWidgetMap;
+	
+	/* TMap de GameplayTag e Soft Object de Textura - Usado pela FrontendFunctionLibrary para buscar imagens das opções 
+	 * por tag */ 
+	/// Configurado no Project Settings — cada entrada associa uma tag Frontend.Image à sua textura.
+	UPROPERTY(
+		Config, // Salva/carrega valor do DefaultGame.ini
+		EditAnywhere, // Editável em: Project Settings, instâncias da classe e Blueprints Defaults
+		Category="Options Image Reference", // Agrupa na aba "Options Image Reference" no Project Settings
+		meta=(
+			ForceInlineRow, // TMap aparece expandido - uma linha por entrada ao invés de collapsed
+			Categories = "Frontend.Image")) // Filtra GameplayTags apenas da categoria "Frontend.Image"
+	TMap<FGameplayTag, TSoftObjectPtr<UTexture2D>> OptionsScreenSoftImage;
 };

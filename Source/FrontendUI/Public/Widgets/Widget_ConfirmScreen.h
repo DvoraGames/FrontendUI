@@ -10,84 +10,102 @@
 class UCommonTextBlock;
 class UDynamicEntryBox;
 
-// Struct Blueprint de cada Botão do modal
+/**
+* FConfirmScreenButtonInfo
+*
+* Struct que representa um botão do modal - armazena o tipo de retorno
+* e o texto a ser exibido no botão.
+*/
 USTRUCT(BlueprintType)
 struct FConfirmScreenButtonInfo
 {
 	GENERATED_BODY()
 	
-	// Variavel responsavel pelo tipo de resultado que esse botão retorna
+	// Tipo de resultado que este botão retorna ao ser clicado (Confirmed, Cancelled, Closed)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EConfirmScreenButtonType ConfirmScreenButtonType = EConfirmScreenButtonType::Unknown;
 	
-	// Variavel responsavel pelo texto exibido no botão
+	// Texto exibido no botão
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText ButtonTextToDisplay;
 	
 };
 
-// Classe de dados para o modal. Armazena configuração completa do modal.
+
+/**
+* UConfirmScreenInfoObject
+*
+* Objeto de dados do modal - armazena o título, a mensagem e a lista de botões.
+* Criado via Factory Functions estáticas para garantir configuração correta por tipo.
+*/
 UCLASS()
 class FRONTENDUI_API UConfirmScreenInfoObject : public UObject
 {
 	GENERATED_BODY()
 	
 public:
-	/* Factory function = É um nome para função static que cria e configura objetos prontos ao invés de fazer manualmente. */
+	//? Factory function: Nome de função static que cria e configura objetos prontos ao invés de fazer manualmente.
 	
-    // Factory: Cria pacote OK (1 botão "Ok" → Closed)
+	// Factory: cria pacote do modal Ok - 1 botão "Ok" que retorna Closed
 	static UConfirmScreenInfoObject* CreateOkScreen(const FText& InScreenTitle, const FText& InScreenMsg);
-    // Factory: Cria pacote Yes/No (2 botões)
+	
+	// Factory: cria pacote do modal Yes/No - 2 botões (Confirmed / Cancelled)
 	static UConfirmScreenInfoObject* CreateYesNoScreen(const FText& InScreenTitle, const FText& InScreenMsg);
-    // Factory: Cria pacote Ok/Cancelar (2 botões)
+	
+	// Factory: cria pacote do modal Ok/Cancel - 2 botões (Confirmed / Cancelled)
 	static UConfirmScreenInfoObject* CreateOkCancelScreen(const FText& InScreenTitle, const FText& InScreenMsg);
 	
-	// Variavel do titulo do modal 
+	// Título exibido no topo do modal
 	UPROPERTY(Transient)
 	FText ScreenTitle;
 	
-	// Variavel da mensagem do modal 
+    // Mensagem exibida no corpo do modal
 	UPROPERTY(Transient)
 	FText ScreenMessage;
 	
-	// Lista dos Botões do modal
+    // Lista de botões disponíveis no modal - populada pelas Factory Functions
 	UPROPERTY(Transient)
 	TArray<FConfirmScreenButtonInfo> AvailableScreenButtons;
 };
 
 /**
- * 
- */
-// Classe BASE pro modal (herdar no BP, NÃO instanciar direto)
-// Abstract: só pra herdar
-// BlueprintType: BP class child 
-// DisableNaiveTick: filhos BP não tickam
+* UWidget_ConfirmScreen
+*
+* Widget base do modal de confirmação do Frontend.
+* Recebe um UConfirmScreenInfoObject com os dados e cria os botões dinamicamente via DynamicEntryBox.
+* Cada botão dispara o callback com seu tipo (Confirmed, Cancelled, Closed) e fecha o modal.
+*/
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UWidget_ConfirmScreen : public UWidget_ActivatableBase
 {
 	GENERATED_BODY()
 	
 public:
-	// Função responsavel por configurar o modal: aplica dados e conecta callbacks dos botões
+	// Configura o modal: aplica título, mensagem e cria os botões com seus callbacks.
 	void InitConfirmScreen(
-		UConfirmScreenInfoObject* InScreenInfoObject,						// Dados do modal (título/botões)
-		TFunction<void(EConfirmScreenButtonType)> ClickedButtonCallback		// Função que roda no clique
+		UConfirmScreenInfoObject* InScreenInfoObject,						// Pacote de Dados do modal (título/botões)
+		TFunction<void(EConfirmScreenButtonType)> ClickedButtonCallback		// Callback disparado ao clicar
 		);
 	
 	//~ Begin UCommonActivatableWidget Interface
+	// Retorna o último botão criado como alvo de foco.
 	virtual UWidget* NativeGetDesiredFocusTarget() const override;
 	//~ End UCommonActivatableWidget Interface
 
 private:
-	// Variavel BindWidget do Titulo do modal
+	// ----------------------------------------------------------
+	// Bound Widgets
+	// ----------------------------------------------------------
+	
+    // TextBlock vinculado - exibe o título do modal
 	UPROPERTY(meta = (BindWidget))
 	UCommonTextBlock* CommonTextBlock_Title;
 	
-	// Variavel BindWidget da Mensagem do modal
+    // TextBlock vinculado - exibe a mensagem do modal
 	UPROPERTY(meta = (BindWidget))
 	UCommonTextBlock* CommonTextBlock_Message;
 	
-	// Variavel BindWidget dos Botões do modal
+    // EntryBox vinculado - container onde os botões são criados dinamicamente
 	UPROPERTY(meta = (BindWidget))
 	UDynamicEntryBox* DynamicEntryBox_Buttons;
 };

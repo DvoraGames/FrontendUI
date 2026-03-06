@@ -8,62 +8,68 @@
 #include "CommonTextBlock.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 
+void UWidget_OptionsDetailsView::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+	
+	// Garante que o painel comece limpo antes de receber qualquer dado
+	ClearDetailsViewInfo();
+}
+
 void UWidget_OptionsDetailsView::UpdateDetailsViewInfo(UListDataObject_Base* InDataObject,
                                                        const FString& InEntryClassName)
 {
-	// Ignora chamadas sem DataObject válido.
-	if (!InDataObject)
-	{
-		return;
-	}
+    // Ignora chamadas sem DataObject válido
+	if (!InDataObject) return;
 	
-	// Atualiza o título com o nome da opção.
+    // Atualiza o título com o nome da opção
 	CommonTextBlock_Title->SetText(InDataObject->GetDataDisplayName());
 	
-	// Verifica se a imagem não é nula
+	// Verifica se a imagem está configurada no DataObject
 	if (!InDataObject->GetSoftDescriptionImage().IsNull())
 	{
-		// Atualiza a imagem setada no DataObject ao Widget Details View
+		// Aplica a imagem de forma lazy (assíncrona) ao widget
 		CommonLazyImage_DescriptionImage->SetBrushFromLazyTexture(InDataObject->GetSoftDescriptionImage());
 		
-		// Define a visibilidade como visivel, mas sem interação
+		// Torna a imagem visível, mas sem capturar interações de input
 		CommonLazyImage_DescriptionImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
+	else
+	{
+		// Colapsa a imagem se não houver nenhuma configurada
+		CommonLazyImage_DescriptionImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
 	
-	// Atualiza a Descrição com o texto que foi setado no Data Registry.
+	// Atualiza a descrição estática da opção com o texto do DataObject.
 	CommonRichTextBlock_Description->SetText(InDataObject->GetDescriptionRichText());
 	
-	// Gera os Detalhes Dinamicos usando o nome da Classe do DataObject eo nome da classe do Widget do Item
+	// Gera os detalhes dinâmicos com o nome da classe do DataObject e do Entry Widget
 	const FString DynamicDetails = FString::Printf(
 		TEXT("Data Object Class: <Bold>%s</>\n\nEntry Widget Class: <Bold>%s</>"), 
 		*InDataObject->GetClass()->GetName(), 
 		*InEntryClassName);
 	
-	// Atualiza os Detalhes Dinamicos com o texto que foi setado acima.
+	// Aplica os detalhes dinâmicos gerados acima
 	CommonRichTextBlock_DynamicDetails->SetText(FText::FromString(DynamicDetails));
 	
-	// Atualiza o texto do motivo da opção estar desabilitada
+    // Atualiza o motivo de desabilitação da opção
 	CommonRichTextBlock_DisabledReason->SetText(InDataObject->GetDisabledRichText());
 }
 
 void UWidget_OptionsDetailsView::ClearDetailsViewInfo() const
 {
-	// Limpa o Texto do Title
+    // Limpa o título
 	CommonTextBlock_Title->SetText(FText::GetEmpty());
-	// Esconde a imagem colapsando-a
-	CommonLazyImage_DescriptionImage->SetVisibility(ESlateVisibility::Collapsed);
-	// Limpa o texto da Descrição
-	CommonRichTextBlock_Description->SetText(FText::GetEmpty());
-	// Limpa o texto dos detalhes dinamicos
-	CommonRichTextBlock_DynamicDetails->SetText(FText::GetEmpty());
-	// Limpa o texto da razão da opção estar desabilitada
-	CommonRichTextBlock_DisabledReason->SetText(FText::GetEmpty());
-}
-
-void UWidget_OptionsDetailsView::NativeOnInitialized()
-{
-	Super::NativeOnInitialized();
 	
-	// Garante que o painel comece limpo antes de receber qualquer dado da OptionsScreen.
-	ClearDetailsViewInfo();
+    // Colapsa a imagem
+	CommonLazyImage_DescriptionImage->SetVisibility(ESlateVisibility::Collapsed);
+	
+    // Limpa a descrição estática
+	CommonRichTextBlock_Description->SetText(FText::GetEmpty());
+	
+	// Limpa os detalhes dinamicos
+	CommonRichTextBlock_DynamicDetails->SetText(FText::GetEmpty());
+	
+    // Limpa o motivo de desabilitação
+	CommonRichTextBlock_DisabledReason->SetText(FText::GetEmpty());
 }

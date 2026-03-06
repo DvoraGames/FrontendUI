@@ -4,32 +4,39 @@
 
 #include "NativeGameplayTags.h"
 
-// Declarando as GameplayTags responsaveis por gerenciar os Menus
+// Declaração externa das GameplayTags nativas do Frontend
 namespace FrontendGameplayTags
 {
-	/* Frontend Widgets Stacks */
-	// Tag responsavel por gerenciar os Modais
+	/*** Widgets Stacks ***/
+	
+	// Stack dos modais de confirmação
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_Modal);
-	// Tag responsavel por gerenciar o Menus em jogo (Pausa, Inventario, etc)
+	
+	// Stack dos menus em jogo (Pausa, Inventário, etc.)
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_GameMenu);
-	// Tag responsavel por gerenciar o HUD (Barra de vida, Stamina, etc)
+	
+	// Stack do HUD (Vida, Stamina, etc.)
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_GameHUD);
-	// Tag responsavel por gerenciar os Menus do frontend (Main, Settings, etc)
+	
+	// Stack dos menus do Frontend (Main Menu, Settings, etc.)
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_WidgetStack_Frontend);
 	
-	/* Frontend Widgets */
-	// Tag responsavel pelo widget da tela Press Any Key
+	
+	/*** Widgets ***/
+
+	// Tag do widget Press Any Key Screen
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_PressAnyKeyScreen);
-	// Tag responsavel pelo widget da tela do Menu Principal
+	// Tag do widget Main Menu Screen
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_MainMenuScreen);
-	// Tag responsavel pelo widget da tela do Menu Principal
+	// Tag do widget Options Screen
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_OptionsScreen);
 	
-	// Tag responsavel pelo widget da tela Play Menu
-	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_PlayScreen);
-	
-	// Tag responsavel pelo widget do Modal de confirmação
+	// Tag do widget do Modal de confirmação
 	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_ConfirmScreen);
+	
+	/*** Options Details View Images ***/
 
+	// Tag de imagem para testes
+	FRONTENDUI_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Image_TesteImage);
 
 }

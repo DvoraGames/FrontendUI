@@ -6,14 +6,26 @@
 
 TSoftClassPtr<UWidget_ActivatableBase> UFrontendFunctionLibrary::GetFrontendSoftWidgetClassByTag(UPARAM(meta = (Categories = "Frontend.Widget")) FGameplayTag InWidgetTag)
 {
-	// Obtém instância default das configurações (Project Settings → Frontend UI Settings)
+	// Acessa os valores configurados no Project Settings sem criar nova instância
 	const UFrontendDeveloperSettings* FrontendDeveloperSettings = GetDefault<UFrontendDeveloperSettings>();
 	
-	// ASSERTION em desenvolvimento: garante que tag existe no FrontendWidgetMap
-	// Crasha + log se designer usou tag inválida (facilita debug)
-	checkf(FrontendDeveloperSettings->FrontendWidgetMap.Contains(InWidgetTag) ,TEXT("FrontendWidgetMap not found in FrontendDeveloperSettings"));
+	// Garante em desenvolvimento que a tag existe no Map — crasha com log se o designer usou uma tag inválida
+	checkf(FrontendDeveloperSettings->FrontendWidgetMap.
+		Contains(InWidgetTag), TEXT("FrontendWidgetMap not found in FrontendDeveloperSettings"));
 	
-	// Retorna soft class associada à tag (nullptr se não existir)
-	// FindRef retorna valor default (nullptr) se chave não encontrada
+	// FindRef: retorna a soft class associada à tag e nullptr se não existir
 	return FrontendDeveloperSettings->FrontendWidgetMap.FindRef(InWidgetTag);
+}
+
+TSoftObjectPtr<UTexture2D> UFrontendFunctionLibrary::GetOptionsSoftImageByTag(FGameplayTag InImageTag)
+{
+	// Acessa os valores configurados no Project Settings sem criar nova instância
+	const UFrontendDeveloperSettings* FrontendDeveloperSettings = GetDefault<UFrontendDeveloperSettings>();
+	
+	// Garante em desenvolvimento que a tag existe no Map — crasha com log se o designer usou uma tag inválida
+	checkf(FrontendDeveloperSettings->OptionsScreenSoftImage.
+		Contains(InImageTag), TEXT("Couldn't find a image associated with tag %s"), *InImageTag.ToString());
+	
+	// FindRef: retorna o soft object associado à tag e nullptr se não existir
+	return FrontendDeveloperSettings->OptionsScreenSoftImage.FindRef(InImageTag);
 }

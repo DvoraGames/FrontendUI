@@ -9,9 +9,14 @@
 class UDataAsset_DataListEntryMapping;
 
 /**
- * Frontend List View que mapeia automaticamente Data Objects para Entry Widgets baseado em Data Asset de configuração.
- * Herda de UCommonListView e sobrescreve a geração de widgets para suportar múltiplos tipos de entradas dinamicamente.
- */
+* UFrontendCommonListView
+*
+* ListView customizada do Frontend - herda de UCommonListView e sobrescreve
+* a geração de Entry Widgets para mapear automaticamente cada tipo de DataObject
+* ao seu widget visual correspondente via DataAsset de configuração.
+*
+* O mapeamento é configurado no Blueprint filho através do DataListEntryMapping.
+*/
 UCLASS()
 class FRONTENDUI_API UFrontendCommonListView : public UCommonListView
 {
@@ -19,22 +24,20 @@ class FRONTENDUI_API UFrontendCommonListView : public UCommonListView
 	
 protected:
 	//~ Begin UCommonListView Interface
-	/**
-	 * Sobrescrita para gerar widgets de configuração no mapeamento de DataListEntryMapping.
-	 * Usa o widget configurado para o tipo específico do Item, ou fallback para o comportamento padrão.
-	*/
+	/* Sobrescrito para gerar o Entry Widget por tipo de DataObject. Mapeado no DataListEntryMapping — se não encontrar, 
+	 * usa o widget padrão da lista. */
 	virtual  UUserWidget& OnGenerateEntryWidgetInternal(UObject* Item, TSubclassOf<UUserWidget> DesiredEntryClass, const TSharedRef<STableViewBase>& OwnerTable) override;
 	//~ End UCommonListView Interface
 	
 private:
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
-	// Editor validation: garante que setou DataListEntryMapping no Blueprint 
+	// Validação de compilação - emite erro se DataListEntryMapping não estiver configurado no Blueprint.
 	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
 #endif
 	//~ End UWidget Interface
 	
-	// Data Asset que mapeia cada tipo de dado da lista ao widget visual correspondente.
+	// Data Asset que mapeia cada tipo de DataObject ao seu Entry Widget visual correspondente.
 	UPROPERTY(EditAnywhere, Category = "Frontend List View Settings")
 	UDataAsset_DataListEntryMapping* DataListEntryMapping;
 	

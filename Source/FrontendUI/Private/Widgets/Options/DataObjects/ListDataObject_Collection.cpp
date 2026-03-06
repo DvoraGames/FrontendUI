@@ -4,24 +4,24 @@
 
 void UListDataObject_Collection::AddChildListData(UListDataObject_Base* InChildListData)
 {
-	// Inicializa a opção filha
+	// Inicializa a opção filha - dispara o OnDataObjectInitialized da subclasse
 	InChildListData->InitDataObject();
 	
-	// Fala para opção "seu pai é essa aba"
+	// Registra esta aba como pai da opção filha
 	InChildListData->SetParentData(this);
 	
-	// Adiciona na minha lista de opções da aba
+	// Adiciona a opção filha ao array interno desta aba
 	ChildListDataArray.Add(InChildListData);
 }
 
-// Retorna TODAS as opções da aba
 TArray<UListDataObject_Base*> UListDataObject_Collection::GetAllChildListData() const
 {
+	// Retorna todas as opções pertencentes a esta aba
 	return ChildListDataArray;
 }
 
-// Retorna true se a aba tem pelo menos 1 opção
 bool UListDataObject_Collection::HasAnyChildListData() const
 {
+	// Retorna true se a lista n estiver vazia
 	return !ChildListDataArray.IsEmpty();
 }

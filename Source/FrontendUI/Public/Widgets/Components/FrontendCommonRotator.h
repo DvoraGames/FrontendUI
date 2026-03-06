@@ -6,16 +6,21 @@
 #include "CommonRotator.h"
 #include "FrontendCommonRotator.generated.h"
 
-/*
- * Extensão do CommonRotator para adicionar utilitários customizados.
- */
+/**
+* UFrontendCommonRotator
+*
+* Extensão do UCommonRotator - adiciona utilitário para selecionar
+* uma opção pelo texto em vez de pelo índice, com fallback visual
+* caso o valor não exista na lista de opções.
+*/
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
 class FRONTENDUI_API UFrontendCommonRotator : public UCommonRotator
 {
 	GENERATED_BODY()
 	
 public:
-	// Seleciona a opção pelo texto, atualizando o índice interno, se a opção não existir, força o texto visualmente (fallback).
+	/* Seleciona a opção pelo texto. Se encontrar, atualiza o índice interno e dispara eventos, se não encontrar, força 
+	 * o texto visualmente como fallback. */
 	void SetSelectedOptionByText(const FText& InTextOption);
 	
 };

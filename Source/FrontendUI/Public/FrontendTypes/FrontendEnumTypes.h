@@ -1,26 +1,26 @@
 #pragma once
 
-// Enum contendo as opções do tipo do Modal
+// Enum que define o tipo de modal de confirmação a ser exibido
 UENUM(BlueprintType)
 enum class EConfirmScreenType : uint8
 {
 	Ok,						// Modal com apenas o botão OK
 	YesNo,					// Modal com o botão Yes e NO
 	OkCancel,				// Modal com o botão Ok e Cancel
-	Unknown UMETA(Hidden)	// Modal desconhecido e que não aparece no nó da BP
+	Unknown UMETA(Hidden)	// Desconhecido — não aparece no nó do BP
 };
 
-// Enum contendo as ações de retorno dos Botões do Modal
+// Enum que define o resultado do botão clicado no modal de confirmação
 UENUM(BlueprintType)
 enum class EConfirmScreenButtonType : uint8
 {
-	Confirmed,				// Confirmado
-	Cancelled,				// Cancelado
-	Closed,					// Cancelado
-	Unknown UMETA(Hidden)	// Desconhecido (não aparece na BP)
+	Confirmed,				// Botão de confirmação clicado (Yes / Ok)
+	Cancelled,				// Botão de cancelamento clicado (No / Cancel)
+	Closed,					// Botão de fechar clicado (Ok em modais informativos)
+	Unknown UMETA(Hidden)	// Desconhecido — não aparece no nó do BP
 };
 
-// Enum que indica o motivo de uma opção ter sido modificada
+// Enum que indica o motivo pelo qual uma opção foi modificada
 UENUM(BlueprintType)
 enum class EOptionsListDataModifyReason : uint8
 {
