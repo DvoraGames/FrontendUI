@@ -6,30 +6,26 @@
 
 void UListDataObject_Carousel::OnDataObjectInitialized()
 {
-	// Por padrao seleciona a primeira opção se o array não estiver vazio
+    // Seleciona a primeira opção como valor inicial padrão
 	if (!AvailableOptionsStringArray.IsEmpty())
 	{
 		CurrentStringValue = AvailableOptionsStringArray[0];
 	}
 	
-	// Sobrescreve o fallback com o valor padrão configurado, se houver
+	// Sobrescreve com o valor padrão configurado no DataAsset, se houver
 	if (HasDefaultValue())
 	{
 		CurrentStringValue = GetDefaultValueAsString();
 	}
 	
-	// Verifica se o Getter via Reflection está configurado
-	if (DataDynamicGetter)
+	// Verifica se o Getter via Reflection está configurado e se o retorno do Getter não está vazio
+	if (DataDynamicGetter && !DataDynamicGetter->GetValueAsString().IsEmpty())
 	{
-		// Verifica se o retorno do Getter não está vazio antes de sobrescrever
-		if (!DataDynamicGetter->GetValueAsString().IsEmpty())
-		{
-			// Sobrescreve o valor atual com a configuração real retornada pelo backend do jogo (GameUserSettings)
-			CurrentStringValue = DataDynamicGetter->GetValueAsString();
-		}
+		// Sobrescreve o valor atual com a configuração real retornada pelo backend do jogo (GameUserSettings)
+		CurrentStringValue = DataDynamicGetter->GetValueAsString();
 	}
 	
-	// Tenta atualizar o texto exibido. Se falhar (ex: array vazio ou dados dessincronizados), usa um fallback.
+	// Sincroniza o texto de exibição - usa fallback se o valor não for encontrado nas opções
 	if (!TrySetDisplayTextFromStringValue(CurrentStringValue))
 	{
 		CurrentDisplayText = FText::FromString(TEXT("Invalid Option"));
@@ -39,90 +35,14 @@ void UListDataObject_Carousel::OnDataObjectInitialized()
 
 void UListDataObject_Carousel::AddDynamicOption(const FString& InStringValue, const FText& InDisplayText)
 {
-	// Adiciona uma nova opção aos arrays de valores (FString) e de exibição (FText)
+	// Registra nova opção nos arrays de valor interno (FString) e de texto de exibição (FText)
 	AvailableOptionsStringArray.Add(InStringValue);
 	AvailableOptionsTextArray.Add(InDisplayText);
 }
 
-// Avança para a próxima opção da lista. Se estiver na última, volta para a primeira (loop).
-void UListDataObject_Carousel::AdvanceToNextOption()
+void UListDataObject_Carousel::OnCarouselInitiatedValueChange(const FText& InNewSelectedText)
 {
-	// Aborta se não houver opções configuradas (String e Text) no carrossel
-	if (AvailableOptionsStringArray.IsEmpty() && AvailableOptionsTextArray.IsEmpty()) return;
-	
-	// Descobre e armazena o índice atual na lista com base na string que está selecionada
-	const int32 CurrentDisplayIndex = AvailableOptionsStringArray.IndexOfByKey(CurrentStringValue);
-	
-	// Incrementa o índice em +1 para o qual queremos avançar
-	const int32 NextIndexToDisplay = CurrentDisplayIndex + 1;
-	
-	// Verifica se o índice incrementado existe dentro da lista
-	if (AvailableOptionsStringArray.IsValidIndex(NextIndexToDisplay))
-	{
-		// Avança para o próximo valor se o índice for existir
-		CurrentStringValue = AvailableOptionsStringArray[NextIndexToDisplay];
-	}
-	else
-	{
-		// volta para o primeiro indice (0) se não existir
-		CurrentStringValue = AvailableOptionsStringArray[0];
-	}
-	
-	// Sincroniza o texto de exibição com o novo valor selecionado
-	TrySetDisplayTextFromStringValue(CurrentStringValue);
-	
-	// Verifica se o Setter via Reflection está configurado
-	if (DataDynamicSetter)
-	{
-		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
-		DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-		// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-		NotifyListDataModified(this);
-	}
-}
-
-// Retorna para a opção anterior da lista. Se estiver na primeira, vai para a última (loop).
-void UListDataObject_Carousel::BackToPreviousOption()
-{
-	// Aborta se não houver opções configuradas (String e Text) no carrossel
-	if (AvailableOptionsStringArray.IsEmpty() && AvailableOptionsTextArray.IsEmpty()) return;
-	
-	// Descobre e armazena o índice atual na lista com base na string que está selecionada
-	const int32 CurrentDisplayIndex = AvailableOptionsStringArray.IndexOfByKey(CurrentStringValue);
-	
-	// Decrementa o índice em -1 para o qual queremos recuar
-	const int32 PreviousIndexToDisplay = CurrentDisplayIndex - 1;
-	
-	// Verifica se o índice decrementado existe dentro da lista
-	if (AvailableOptionsStringArray.IsValidIndex(PreviousIndexToDisplay))
-	{
-		// Recua para o valor anterior se o índice existir
-		CurrentStringValue = AvailableOptionsStringArray[PreviousIndexToDisplay];
-	}
-	else
-	{
-		// Avança para o último Index se não existir
-		CurrentStringValue = AvailableOptionsStringArray.Last();
-	}
-	
-	// Sincroniza o texto de exibição com o novo valor selecionado
-	TrySetDisplayTextFromStringValue(CurrentStringValue);
-	
-	// Verifica se o Setter via Reflection está configurado
-	if (DataDynamicSetter)
-	{
-		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
-		DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-		// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-		NotifyListDataModified(this);
-	}
-}
-
-void UListDataObject_Carousel::OnRotatorInitiatedValueChange(const FText& InNewSelectedText)
-{
-	// Busca o índice do texto recebido do Rotator no array de textos exibíveis
+    // Busca o índice do texto recebido no array de textos exibíveis
 	const int32 FoundIndex = AvailableOptionsTextArray.IndexOfByPredicate(
 		[InNewSelectedText](const FText& AvailableText)->bool
 		{
@@ -131,23 +51,22 @@ void UListDataObject_Carousel::OnRotatorInitiatedValueChange(const FText& InNewS
 		}
 		);
 	
-	// Garante que o índice encontrado é válido em ambos os arrays antes de prosseguir
-	if (FoundIndex != INDEX_NONE && AvailableOptionsStringArray.IsValidIndex(FoundIndex))
+    // Índice inválido ou dessincronizado entre arrays — ignora a mudança
+	if (FoundIndex == INDEX_NONE || !AvailableOptionsStringArray.IsValidIndex(FoundIndex)) return;
+	
+    // Atualiza o texto e o valor interno com base no índice encontrado
+	CurrentDisplayText = InNewSelectedText;
+	CurrentStringValue = AvailableOptionsStringArray[FoundIndex];
+		
+	// Verifica se o Setter via Reflection está configurado
+	if (DataDynamicSetter)
 	{
-		// Atualiza o texto e o valor interno com base no índice encontrado
-		CurrentDisplayText = InNewSelectedText;
-		CurrentStringValue = AvailableOptionsStringArray[FoundIndex];
-		
-		// Verifica se o Setter via Reflection está configurado
-		if (DataDynamicSetter)
-		{
-			// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
-			DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-			// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-			NotifyListDataModified(this);
-		}
+		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
+		DataDynamicSetter->SetValueFromString(CurrentStringValue);
 	}
+	
+	// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
+	NotifyListDataModified(this);
 }
 
 bool UListDataObject_Carousel::CanResetBackToDefaultValue() const
@@ -158,31 +77,27 @@ bool UListDataObject_Carousel::CanResetBackToDefaultValue() const
 
 bool UListDataObject_Carousel::TryResetBackToDefaultValue()
 {
-	// Se tiver valor padrão e o valor atual for diferente dele
-	if (CanResetBackToDefaultValue())
+    // Aborta se não há valor padrão ou o valor atual já é o padrão
+	if (!CanResetBackToDefaultValue()) return false;
+	
+	// Reverte o valor interno para o padrão configurado
+	CurrentStringValue = GetDefaultValueAsString();
+	
+	// Sincroniza o texto de exibição com o valor revertido
+	TrySetDisplayTextFromStringValue(CurrentStringValue);
+	
+	// Verifica se o Setter via Reflection está configurado
+	if (DataDynamicSetter)
 	{
-		// Reverte o valor interno para o padrão configurado
-		CurrentStringValue = GetDefaultValueAsString();
-		
-		// Sincroniza o texto de exibição com o valor revertido
-		TrySetDisplayTextFromStringValue(CurrentStringValue);
-		
-		// Verifica se o Setter via Reflection está configurado
-		if (DataDynamicSetter)
-		{
-			// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
-			DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-			// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-			NotifyListDataModified(this);
-			
-			// Retorna que o Reset foi bem-sucedido
-			return true;
-		}
+		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
+		DataDynamicSetter->SetValueFromString(CurrentStringValue);
 	}
 	
-	// Retorna que o Reset não foi feito
-	return false;
+	// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
+	NotifyListDataModified(this);
+		
+	// Retorna que o Reset foi bem-sucedido
+	return true;
 }
 
 bool UListDataObject_Carousel::TrySetDisplayTextFromStringValue(const FString& InStringValue)
@@ -198,6 +113,6 @@ bool UListDataObject_Carousel::TrySetDisplayTextFromStringValue(const FString& I
 		return true;
 	}
 	
-    // Falha - índice inválido, arrays dessincronizados ou valor não encontrado
+    // Índice inválido — arrays dessincronizados ou valor não cadastrado
 	return false;
 }

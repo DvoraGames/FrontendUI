@@ -9,6 +9,7 @@
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
 
 using namespace FFrontendLocHelper;
 using namespace FFrontendFormatCase;
@@ -83,7 +84,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		
 		// Registra opções dinâmicas do carrossel (valor interno + texto exibido)
 		GameDifficulty->AddDynamicOption(TEXT("Easy"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptEasy"));
-		GameDifficulty->AddDynamicOption(TEXT("Normal"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptNormal"));
+		GameDifficulty->AddDynamicOption( TEXT("Normal"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptNormal"));
 		GameDifficulty->AddDynamicOption(TEXT("Hard"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptHard"));
 		GameDifficulty->AddDynamicOption(TEXT("Expert"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptExpert"));
 		
@@ -136,11 +137,14 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 			GameLanguage->AddDynamicOption(Code, NativeName);
 		}
 
-		// Pega o codigo do idioma do sistema operacional
+		// Código de idioma padrão usado como fallback
+		const FString DefaultLanguageCode = "en";
+		
+		// Código de idioma configurado no sistema operacional do jogador
 		const FString OSLanguageCode = FInternationalization::Get().GetDefaultLanguage()->GetName();
 		
-		// Define o idioma do sistema como o valor padrão
-		GameLanguage->SetDefaultValueFromString(OSLanguageCode); 
+		// Define o padrão: usa o idioma do OS se suportado, caso contrário cai no fallback "en"
+		GameLanguage->SetDefaultValueFromString(LocalizedCodes.Contains(OSLanguageCode) ? OSLanguageCode : DefaultLanguageCode);
 		
 		// Liga o DataObject da UI aos Getters/Setters do GameUserSettings via Reflection (usando a Macro)
 		GameLanguage->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentGameLanguage));

@@ -4,24 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
-#include "Widget_ListEntry_Carousel.generated.h"
+#include "Widget_ListEntry_Rotator.generated.h"
 
-class UFrontendCommonCarousel;
-class UListDataObject_Carousel;
+class UListDataObject_Rotator;
+class UFrontendCommonRotator;
 class UFrontendCommonButtonBase;
 
 /**
-* UWidget_ListEntry_Carousel
+* UWidget_ListEntry_Rotator
 *
-* Entry visual para opções do tipo Carousel dentro da ListView.
+* Entry visual para opções do tipo carrossel dentro da ListView.
 * Exibe a opção atual no Rotator e permite navegar entre os valores
 * usando os botões anterior/próximo ou o próprio Rotator.
 */
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
-class FRONTENDUI_API UWidget_ListEntry_Carousel : public UWidget_ListEntry_Base
+class FRONTENDUI_API UWidget_ListEntry_Rotator : public UWidget_ListEntry_Base
 {
 	GENERATED_BODY()
-
+	
 protected:
 	//~ Begin UUserWidget Interface
 	// Faz os binds iniciais dos botões e do Rotator quando a entry é criada.
@@ -29,28 +29,24 @@ protected:
 	//~ End UUserWidget Interface
 
 	//~ Begin UWidget_ListEntry_Base Interface
-	// Faz o Cache do Cast do DataObject recebido para Carousel e sincroniza o Rotator com ele.
+	// Faz o Cache do Cast do DataObject recebido para Rotator e sincroniza o Rotator com ele.
 	virtual void OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject) override;	
 	
 	// Atualiza o Rotator quando o DataObject for modificado externamente ou por navegação.
 	virtual void OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData, 
 		EOptionsListDataModifyReason ModifyReason) override;
 	//~ End UWidget_ListEntry_Base Interface
-	
+
 private:
-	// ----------------------------------------------------------
-	// Handlers
-	// ----------------------------------------------------------
-	
-	// Navega para a opção anterior no Carousel.
+	// Solicita ao DataObject navegar para a opção anterior.
 	void OnPreviousClicked() const;
 	
-	// Navega para a próxima opção no Carousel.
+    // Solicita ao DataObject navegar para a próxima opção.
 	void OnNextClicked() const;
 	
-	// Notifica o DataObject com o novo valor selecionado após rotação do Carousel.
-	void OnCarouselRotated(int32 SelectedIndex, bool bFromNavigation) const;
-
+	// Reage à mudança de valor feita pelo Rotator.
+	void OnRotatorValueChanged(int32 Value, bool bUserInitiated) const;
+	
 	// ----------------------------------------------------------
 	// Bound Widgets
 	// ----------------------------------------------------------
@@ -59,10 +55,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
 	UFrontendCommonButtonBase*  CommonButton_PreviousOption;
 	
-	// Carousel animado que exibe as opções disponíveis e suporta navegação com loop. (Classe customizada)
-	// UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))	
+	// Rotator que exibe e navega entre os textos disponíveis do carrossel.
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
-	UFrontendCommonCarousel*  CommonCarousel_AvailableOptions;
+	UFrontendCommonRotator*  CommonRotator_AvailableOptions;
 	
     // Botão usado para avançar uma opção no carrossel.
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
@@ -74,5 +69,5 @@ private:
 	
 	// Cache do DataObject de carrossel associado a esta entry.
 	UPROPERTY(Transient)
-	UListDataObject_Carousel* CachedOwningCarouselDataObject;
+	UListDataObject_Rotator* CachedOwningRotatorDataObject;
 };

@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Value.h"
-#include "ListDataObject_Carousel.generated.h"
+#include "ListDataObject_Rotator.generated.h"
 
 /**
-* UListDataObject_Carousel
+* UListDataObject_Rotator
 *
 * DataObject para opções de menu do tipo Carrossel.
 * Permite navegar ciclicamente (anterior/próximo) entre uma lista de opções pré-definidas.
 * Separa o valor interno (FString) do texto traduzível exibido ao jogador (FText).
 */
 UCLASS()
-class FRONTENDUI_API UListDataObject_Carousel : public UListDataObject_Value
+class FRONTENDUI_API UListDataObject_Rotator : public UListDataObject_Value
 {
 	GENERATED_BODY()
 	
@@ -22,10 +22,16 @@ public:
 	// Adiciona uma nova opção navegável ao carrossel.
 	void AddDynamicOption(const FString& InStringValue, const FText& InDisplayText);
 	
-	// Atualiza o valor selecionado a partir de um texto - chamado pelo componente visual Carousel.
-	void OnCarouselInitiatedValueChange(const FText& InNewSelectedText);
+	// Avança para a próxima opção da lista - volta ao início ao ultrapassar o limite.
+	void AdvanceToNextOption();
 	
-	// Retorna a lista completa de textos exibíveis para popular o componente visual (Carousel).
+	// Retorna para a opção anterior da lista - vai para o fim ao ultrapassar o limite.
+	void BackToPreviousOption();
+	
+	// Atualiza o valor selecionado a partir de um texto - chamado pelo componente visual Rotator.
+	void OnRotatorInitiatedValueChange(const FText& InNewSelectedText);
+	
+	// Retorna a lista completa de textos exibíveis para popular o componente visual (Rotator).
 	FORCEINLINE const TArray<FText>& GetAvailableOptionsTextArray() const { return AvailableOptionsTextArray; }
 	
 	// Retorna o texto da opção atualmente selecionada.

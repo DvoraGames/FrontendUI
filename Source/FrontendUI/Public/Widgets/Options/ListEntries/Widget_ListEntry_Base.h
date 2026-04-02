@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonActivatableWidget.h"
 #include "CommonUserWidget.h"
 #include "Blueprint/IUserObjectListEntry.h"
 #include "FrontendTypes/FrontendEnumTypes.h"
@@ -21,7 +22,7 @@ class UCommonTextBlock;
 * Subclasses como Carousel e Slider herdam daqui para adicionar interações específicas.
 */
 UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
-class FRONTENDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public IUserObjectListEntry
+class FRONTENDUI_API UWidget_ListEntry_Base : public UCommonActivatableWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY()
 	
@@ -65,7 +66,6 @@ protected:
 	void SelectThisEntryWidget() const;
 	
 private:
-	
 	// ----------------------------------------------------------
 	// Bound Widget
 	// ----------------------------------------------------------

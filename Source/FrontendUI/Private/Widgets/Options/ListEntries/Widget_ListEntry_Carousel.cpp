@@ -3,11 +3,11 @@
 
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Carousel.h"
 
-#include "CommonInputSubsystem.h"
+#include "Blueprint/WidgetTree.h"
 #include "Widgets/Components/FrontendCommonButtonBase.h"
-#include "Widgets/Components/FrontendCommonRotator.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+#include "Widgets/Components/FrontendCommonCarousel.h"
 
 void UWidget_ListEntry_Carousel::NativeOnInitialized()
 {
@@ -18,17 +18,6 @@ void UWidget_ListEntry_Carousel::NativeOnInitialized()
 	
 	// Vincula o clique do botão direito para pedir ao DataObject avançar uma opção
 	CommonButton_NextOption->OnClicked().AddUObject(this, &ThisClass::OnNextClicked);
-	
-	// Ao clicar no Rotator, esta própria linha vira o item selecionado da ListView
-	CommonRotator_AvailableOptions->OnClicked().AddLambda(
-		[this]()
-		{
-			// Seleciona a propria entry
-			SelectThisEntryWidget();
-		});
-	
-	// Vincula o evento disparado quando o Rotator troca de opção
-	CommonRotator_AvailableOptions->OnRotatedEvent.AddUObject(this, &ThisClass::OnRotatorValueChanged);
 }
 
 void UWidget_ListEntry_Carousel::OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject)
@@ -38,11 +27,14 @@ void UWidget_ListEntry_Carousel::OnOwningListDataObjectSet(UListDataObject_Base*
 	// Faz o cast para o tipo específico de carrossel e guarda em cache para uso nos cliques e atualizações
 	CachedOwningCarouselDataObject = CastChecked<UListDataObject_Carousel>(InOwningListDataObject);
 	
-	// Popula o Rotator com todos os textos disponíveis configurados no DataObject
-	CommonRotator_AvailableOptions->PopulateTextLabels(CachedOwningCarouselDataObject->GetAvailableOptionsTextArray());
+	// Popula o Carousel com as opções disponíveis (Classe customizada)
+	CommonCarousel_AvailableOptions->PopulateCarouselLabels(CachedOwningCarouselDataObject->GetAvailableOptionsTextArray());
 	
-	// Ajusta o Rotator para mostrar o texto atualmente selecionado no DataObject
-	CommonRotator_AvailableOptions->SetSelectedOptionByText(CachedOwningCarouselDataObject->GetCurrentDisplayText());
+	// Seleciona o valor atual do DataObject
+	CommonCarousel_AvailableOptions->SetSelectedByText(CachedOwningCarouselDataObject->GetCurrentDisplayText());
+	
+	// Vincula o delegate de rotação para notificar/atualizar o DataObject ao navegar
+	CommonCarousel_AvailableOptions->OnRotatedEvent.AddUObject(this, &ThisClass::OnCarouselRotated);
 }
 
 void UWidget_ListEntry_Carousel::OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData,
@@ -50,54 +42,45 @@ void UWidget_ListEntry_Carousel::OnOwningListDataObjectModified(UListDataObject_
 {
 	Super::OnOwningListDataObjectModified(OwningModifiedData, ModifyReason);
 	
-	// Se o DataObject desta entry estiver válido
-	if (CachedOwningCarouselDataObject)
+	// Aborta se o DataObject ainda não foi cacheado
+	if (!CachedOwningCarouselDataObject) return;
+	
+	// Lê o texto atualmente exibido no Carousel
+	const FText CurrentText = CommonCarousel_AvailableOptions->GetSelectedText();
+	
+	// Lê o texto que o DataObject considera como valor atual
+	const FText DataText = CachedOwningCarouselDataObject->GetCurrentDisplayText();
+	
+	// Evita chamar SetSelectedByText desnecessariamente se já estão sincronizados
+	if (!CurrentText.EqualTo(DataText))
 	{
-		// Atualiza o rotator com o texto atual
-		CommonRotator_AvailableOptions->SetSelectedOptionByText(CachedOwningCarouselDataObject->GetCurrentDisplayText());
+		// Força o Carousel a exibir o valor do DataObject
+		CommonCarousel_AvailableOptions->SetSelectedByText(DataText);
 	}
 }
 
 void UWidget_ListEntry_Carousel::OnPreviousClicked() const
 {
-	// Se o DataObject desta entry estiver válido
-	if (CachedOwningCarouselDataObject)
-	{
-		// Pede ao DataObject voltar para a opção anterior do carrossel
-		CachedOwningCarouselDataObject->BackToPreviousOption();
-	}
-	
+	// Navega para a opção anterior no Carousel
+	CommonCarousel_AvailableOptions->ShiftLeft();
+
 	// Garante que esta linha continue/torne-se a selecionada na ListView após o clique
 	SelectThisEntryWidget();
 }
 void UWidget_ListEntry_Carousel::OnNextClicked() const
 {
-	// Se o DataObject desta entry estiver válido
-	if (CachedOwningCarouselDataObject)
-	{
-		// Navega para a próxima opção no DataObject (a UI será atualizada via modificação do DataObject)
-		CachedOwningCarouselDataObject->AdvanceToNextOption();
-	}
-	
+	// Navega para a proxima opção no Carousel
+	CommonCarousel_AvailableOptions->ShiftRight();
+
 	// Garante que esta linha continue/torne-se a selecionada na ListView após o clique
 	SelectThisEntryWidget();
 }
 
-void UWidget_ListEntry_Carousel::OnRotatorValueChanged(int32 Value, bool bUserInitiated) const
+void UWidget_ListEntry_Carousel::OnCarouselRotated(int32 NewIndex, bool bFromNavigation) const
 {
-	// Aborta se não houver DataObject em cache
+	// Aborta se o DataObject ainda não foi cacheado
 	if (!CachedOwningCarouselDataObject) return;
 	
-	// Obtém o subsistema de input para descobrir de onde veio a mudança do Rotator
-	UCommonInputSubsystem* CommonInputSubsystem = GetInputSubsystem();
-	
-	// Ignora mudanças que não vieram do usuário ou quando o subsistema não estiver disponível
-	if (!CommonInputSubsystem || !bUserInitiated) return;
-	
-	// Só propaga a mudança para o DataObject quando a navegação veio do Gamepad
-	if (CommonInputSubsystem->GetCurrentInputType() == ECommonInputType::Gamepad)
-	{
-		// Envia ao DataObject o texto atualmente selecionado no Rotator
-		CachedOwningCarouselDataObject->OnRotatorInitiatedValueChange(CommonRotator_AvailableOptions->GetSelectedText());
-	}
+	// Repassa o texto selecionado no Carousel ao DataObject para persistir a mudança
+	CachedOwningCarouselDataObject->OnCarouselInitiatedValueChange(CommonCarousel_AvailableOptions->GetSelectedText());
 }

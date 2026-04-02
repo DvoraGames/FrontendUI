@@ -28,3 +28,11 @@ enum class EOptionsListDataModifyReason : uint8
 	DependencyModified,		// A opção mudou devido a outra opção (ex: preset de Qualidade alterou as Sombras)
 	ResetToDefault			// A opção foi restaurada para o valor padrão de fábrica
 };
+
+UENUM(BlueprintType)
+enum class ECarouselLoopMode : uint8
+{
+	Stop        UMETA(DisplayName = "Stop at Bounds"),
+	Wrap        UMETA(DisplayName = "Instant Wrap"),
+	Infinite    UMETA(DisplayName = "Smooth Infinite")
+};
