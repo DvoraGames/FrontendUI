@@ -18,6 +18,11 @@ class FRONTENDUI_API UListDataObject_Collection : public UListDataObject_Base
 	GENERATED_BODY()
 	
 public:
+	// ----------------------------------------------------------
+	// Getters e Setters — gerados via LIST_DATA_ACCESSOR
+	// ----------------------------------------------------------
+	LIST_DATA_ACCESSOR(bool, IsExpanded);
+	
 	// Inicializa e registra uma opção filha dentro desta aba.
 	void AddChildListData(UListDataObject_Base* InChildListData);
 	
@@ -30,6 +35,11 @@ public:
 	//~ End UListDataObject_Base Interface
 	
 private:
+	// ----------------------------------------------------------
+	// Properties
+	// ----------------------------------------------------------
+	bool IsExpanded = false;			// Define se a Collection/Category irá iniciar expandida 
+	
 	// Lista de opções pertencentes a esta aba - reconstruída em runtime, não serializada.
 	UPROPERTY(Transient)
 	TArray<UListDataObject_Base*> ChildListDataArray;

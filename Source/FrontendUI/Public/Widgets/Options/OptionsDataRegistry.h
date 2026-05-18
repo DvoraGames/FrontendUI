@@ -9,13 +9,6 @@
 class UListDataObject_Base;
 class UListDataObject_Collection;
 
-/*
- * "Registry" central: cria e registra todas as abas de opções (Gameplay/Audio/Video/Control)
- * e expõe métodos para a tela de opções obter os itens de cada aba.
- *
- * Obs: Não é singleton de verdade, mas se comporta como um "único ponto de verdade" para essas opções.
- */
-
 /**
 * UOptionsDataRegistry
 *
@@ -38,10 +31,16 @@ public:
 	// Retorna o array com todas as abas registradas - usado pela OptionsScreen para criar os botões do TabList.
 	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollections; }
 	
-	// Retorna os DataObjects (opções) da aba identificada pelo TabID - usado pela OptionsScreen para popular a ListView.
+	// Retorna todos os itens (opções) da aba identificada pelo TabID - usados como source da List View.
 	TArray<UListDataObject_Base*> GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const;
 	
+	// Retorna os itens raiz (Depth 1) da aba identificada pelo TabID - usados como source da TreeView.
+	TArray<UListDataObject_Base*> GetTreeRootItemsBySelectedTabID(const FName InSelectedTabID) const;
+	
 private:
+	// Busca recursivamente todos os filhos do item pai informado e adiciona os itens encontrados no array de saída.
+	void FindChildren(UListDataObject_Base* InParentData, TArray<UListDataObject_Base*>& OutFoundChildListData) const;
+	
 	// Cria e registra a aba Gameplay com suas opções
 	void InitGamePlayCollectionTab();
 	

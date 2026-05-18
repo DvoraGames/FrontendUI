@@ -10,7 +10,7 @@
 #include "FrontendSettings/FrontendGameUserSettings.h"
 #include "Subsystems/FrontendUISubsystem.h"
 #include "Widgets/Components/FrontendCommonButtonBase.h"
-#include "Widgets/Components/FrontendCommonListView.h"
+#include "Widgets/Components/FrontendCommonTreeView.h"
 #include "Widgets/Components/FrontendTabListWidgetBase.h"
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Options/Widget_OptionsDetailsView.h"
@@ -26,23 +26,28 @@ void UWidget_OptionsScreen::NativeOnInitialized()
     // Registra o Input Action de Reset apenas se ele foi configurado no Blueprint filho.
 	if (ResetAction)
 	{
-			// Registra o binding e salva o handle para gerenciar seu ciclo de vida.
-			ResetActionHandle = RegisterUIActionBinding(
-		 	FBindUIActionArgs(
-				ResetAction,	// Ação (InputAction)
-				true,			// Mostrar na Bound Action Bar
-				FSimpleDelegate::CreateUObject(this, &ThisClass::OnResetBoundActionTriggered) // Callback quando acionado
-			)
-			);
+		// Registra o binding da ação e armazena o handle.
+		ResetActionHandle = RegisterUIActionBinding(
+		FBindUIActionArgs(
+			ResetAction,	// Ação (InputAction)
+			true,			// Mostrar na Bound Action Bar
+			FSimpleDelegate::CreateUObject(this, &ThisClass::OnResetBoundActionTriggered) // Callback quando acionado
+			));
 	}
 	
-	// Registra o handler para atualizar a lista quando o usuário trocar de aba
+	// Registra o handler de troca de aba.
 	TabListWidget_OptionsTabs->OnTabSelected.AddUniqueDynamic(this, &ThisClass::OnOptionsTabSelected);
 	
-	// Registra handlers de hover e seleção da ListView.
-	CommonListView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListViewItemHovered);
-	CommonListView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListViewItemSelected);
-	
+	// Verifica se a TreeView foi vinculada.
+	if (CommonTreeView_OptionsList)
+	{
+		// Registra o callback usado para fornecer os filhos de cada item.
+		CommonTreeView_OptionsList->SetOnGetItemChildren(this, &ThisClass::HandleGetItemChildren);
+		
+		// Registra handlers de hover e seleção da TreeView.
+		CommonTreeView_OptionsList->OnItemIsHoveredChanged().AddUObject(this, &ThisClass::OnListItemHovered);
+		CommonTreeView_OptionsList->OnItemSelectionChanged().AddUObject(this, &ThisClass::OnListItemSelected);
+	}
 }
 
 void UWidget_OptionsScreen::NativeOnActivated()
@@ -82,13 +87,21 @@ void UWidget_OptionsScreen::NativeOnDeactivated()
 
 UWidget* UWidget_OptionsScreen::NativeGetDesiredFocusTarget() const
 {
-	/* Tenta redirecionar o foco para o Entry Widget do item selecionado na ListView. Garante que o foco do CommonUI 
+	/* Tenta redirecionar o foco para o Entry Widget do item selecionado. Garante que o foco do CommonUI 
 	sempre esteja no item correto ao navegar via Gamepad. */
-	if (UObject* SelectedObject = CommonListView_OptionsList->GetSelectedItem())
+	
+	// Verifica se a TreeView foi vinculada.
+	if (CommonTreeView_OptionsList)
 	{
-		if (UUserWidget* SelectedEntryWidget = CommonListView_OptionsList->GetEntryWidgetFromItem(SelectedObject))
+		// Obtém item atualmente selecionado na árvore.
+		if (const UObject* SelectedObject = CommonTreeView_OptionsList->GetSelectedItem())
 		{
-			return SelectedEntryWidget;
+			// Tenta obter a entry widget associada ao item selecionado.
+			if (UUserWidget* SelectedEntryWidget = CommonTreeView_OptionsList->GetEntryWidgetFromItem(SelectedObject))
+			{
+				// Retorna a entry encontrada como alvo de foco.
+				return SelectedEntryWidget;
+			}
 		}
 	}
 	
@@ -191,78 +204,88 @@ void UWidget_OptionsScreen::OnResetBoundActionTriggered()
 
 void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 {
-    // Limpa a DetailsView ao trocar de aba para não exibir dados da aba anterior.
+	// Limpa a DetailsView ao trocar de aba para não exibir dados da aba anterior.
 	DetailsView_ListEntryInfo->ClearDetailsViewInfo();
 	
-    // Busca os DataObjects da aba selecionada no Registry.
-	TArray<UListDataObject_Base*> FoundListSourceItems = GetOrCreateDataRegistry()->GetListSourceItemBySelectedTabID(TabID);
+	// Obtém os itens raiz (Depth 1) da aba selecionada.
+	TArray<UListDataObject_Base*> FoundRootItems = GetOrCreateDataRegistry()->GetTreeRootItemsBySelectedTabID(TabID);
 	
-    // Alimenta e atualiza a ListView com os itens da aba selecionada.
-	CommonListView_OptionsList->SetListItems(FoundListSourceItems);
-	CommonListView_OptionsList->RequestRefresh();
-	
-	// Se a aba possuir itens, foca automaticamente na primeira opção (útil para navegação via Gamepad)
-	if (CommonListView_OptionsList->GetListItems().Num() != 0)
+	// Verifica se a TreeView foi vinculada.
+	if (CommonTreeView_OptionsList)
 	{
-		CommonListView_OptionsList->NavigateToIndex(0);
-		CommonListView_OptionsList->SetSelectedIndex(0);
+		// Define os itens da árvore e solicita a atualização visual.
+		CommonTreeView_OptionsList->SetTreeViewItems(FoundRootItems);
+		CommonTreeView_OptionsList->RequestRefresh();
+			
+		// Seleciona o primeiro item disponível da árvore.
+		if (CommonTreeView_OptionsList->GetListItems().Num() != 0)
+		{
+			CommonTreeView_OptionsList->NavigateToIndex(0);
+			CommonTreeView_OptionsList->SetSelectedIndex(0);
+		}
 	}
 	
 	// Limpa o array de resetáveis ao trocar de aba.
 	ResettableDataArray.Empty();
-	
-	for (UListDataObject_Base* FoundListSourceItem : FoundListSourceItems)
+		
+	// Obtém todos os itens da aba para registrar delegates e estado de reset.
+	TArray<UListDataObject_Base*> AllItems = GetOrCreateDataRegistry()->GetListSourceItemBySelectedTabID(TabID);
+		
+	for (UListDataObject_Base* Item : AllItems)
 	{
-		// Ignora entradas inválidas por segurança.
-		if (!FoundListSourceItem) continue;
-		
-		// Evita registrar o delegate de modificação mais de uma vez no mesmo DataObject.
-		if (!FoundListSourceItem->OnListDataModified.IsBoundToObject(this))
+		// Ignora itens inválidos.
+		if (!Item) continue;
+			
+		// Registra esta tela para reagir a alterações do item.
+		if (!Item->OnListDataModified.IsBoundToObject(this))
 		{
-			// Registra o handler para reagir quando este DataObject for modificado pelo usuário.
-			FoundListSourceItem->OnListDataModified.AddUObject(this,&ThisClass::OnListViewListDataModified);
+			Item->OnListDataModified.AddUObject(this,  &ThisClass::OnListListDataModified);
+		}
+			
+		// Adiciona o item ao array de resetáveis quando aplicável.
+		if (Item->CanResetBackToDefaultValue())
+		{
+			ResettableDataArray.AddUnique(Item);
 		}
 		
-		// Verifica se este DataObject suporta reset antes de adicioná-lo ao array.
-		if (FoundListSourceItem->CanResetBackToDefaultValue())
+		// Sincroniza na árvore o estado atual de expansão das coleções.
+		if (UListDataObject_Collection* Collection = Cast<UListDataObject_Collection>(Item))
 		{
-			// Adiciona ao array de resetáveis.
-			ResettableDataArray.AddUnique(FoundListSourceItem);
+			CommonTreeView_OptionsList->SetItemExpansion(Collection, Collection->GetIsExpanded());
 		}
-	}
-	
-	// Verifica se o array está vazio
+	}		
+		
+	// Remove a ação de reset quando não houver itens resetáveis.
 	if (ResettableDataArray.IsEmpty())
 	{
-		// Remove o Action Binding do Reset
 		RemoveActionBinding(ResetActionHandle);
 	}
 	else
 	{
-		// Verifica se o array de Actions não contem o Reset
+		// Reativa a ação de reset quando necessário.
 		if (!GetActionBindings().Contains(ResetActionHandle))
 		{
-			// Adiciona o Action Binding do Reset
 			AddActionBinding(ResetActionHandle);
 		}
 	}
 }
 
-void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool bIsHovered)
+
+void UWidget_OptionsScreen::OnListItemHovered(UObject* InHoveredItem, bool bIsHovered) const
 {
-	// Ignora callbacks disparados com item nulo.	
+	// Ignora callbacks com item inválido.
 	if (!InHoveredItem) return;
 	
 	// Obtém o Entry Widget correspondente ao item hovereado.
-	UWidget_ListEntry_Base* HoveredItem = CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InHoveredItem);
+	UWidget_ListEntry_Base* HoveredItem = CommonTreeView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InHoveredItem);
 	
-	// Crash se o Entry Widget for inválido.
-	check(HoveredItem);
+	// Aborta se não houver entry ativa para o item.
+	if (!HoveredItem) return;
 	
-	// Delega o tratamento visual de hover ao próprio Entry Widget.
+	// Delega o estado de hover para a própria entry.
 	HoveredItem->NativeOnItemHovered(bIsHovered);
 	
-	// Verifica se está hoverado
+	// Verifica se o item entrou em hover.
 	if (bIsHovered)
 	{
 		// Atualiza as informações da DetailsView com base no Item Hovereado.
@@ -275,7 +298,7 @@ void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool b
 	else
 	{
 		// Pega o Item atualmente selecionado, caso não tenha nenhum sendo hovereado.
-		if (UListDataObject_Base* SelectedItem = CommonListView_OptionsList->GetSelectedItem<UListDataObject_Base>())
+		if (UListDataObject_Base* SelectedItem = CommonTreeView_OptionsList->GetSelectedItem<UListDataObject_Base>())
 		{
 			// Atualiza as informações da DetailsView com base no Item atualmente Selecionado.
 			/* As informações são preenchidas no Data Registry */
@@ -287,10 +310,16 @@ void UWidget_OptionsScreen::OnListViewItemHovered(UObject* InHoveredItem, bool b
 	}
 }
 
-void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
+void UWidget_OptionsScreen::OnListItemSelected(UObject* InSelectedItem) const
 {
 	// Ignora callbacks disparados com item nulo
 	if (!InSelectedItem) return;
+	
+	// Collections não atualizam a DetailsView neste fluxo.
+	if (UListDataObject_Collection* SelectedCollection = Cast<UListDataObject_Collection>(InSelectedItem))
+	{
+		return;
+	}
 	
 	// Atualiza as informações da DetailsView com base no Item atualmente Selecionado.
 	/* As informações são preenchidas no Data Registry */
@@ -303,20 +332,20 @@ void UWidget_OptionsScreen::OnListViewItemSelected(UObject* InSelectedItem)
 FString UWidget_OptionsScreen::TryGetEntryWidgetClassName(UObject* InOwningListItem) const
 {
 	// Tenta obter o Entry Widget correspondente ao DataObject fornecido.
-	// GetEntryWidgetFromItem faz o mapeamento DataObject → Entry Widget gerenciado internamente pela ListView.
+	// GetEntryWidgetFromItem faz o mapeamento DataObject → Entry Widget gerenciado internamente pela List/Tree View.
 	if (UUserWidget* FoundEntryWidget = 
-		CommonListView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InOwningListItem))
+		CommonTreeView_OptionsList->GetEntryWidgetFromItem<UWidget_ListEntry_Base>(InOwningListItem))
 	{
 		// Retorna o nome da classe C++ do widget se o Entry foi encontrado.
 		return FoundEntryWidget->GetClass()->GetName();
 	}
 	
 	// Fallback: item não possui entry widget ativo no momento.
-	// Pode ocorrer se o item estiver fora da área visível da ListView (reciclagem) ou se ainda não tiver sido renderizado.
+	// Pode ocorrer se o item estiver fora da área visível da Lista (reciclagem) ou se ainda não tiver sido renderizado.
 	return TEXT("Entry Widget Not Valid");
 }
 
-void UWidget_OptionsScreen::OnListViewListDataModified(UListDataObject_Base* ModifiedData,
+void UWidget_OptionsScreen::OnListListDataModified(UListDataObject_Base* ModifiedData,
 	EOptionsListDataModifyReason ModifiedReason)
 {
 	// Ignora callbacks inválidos ou disparados durante um reset em andamento.
@@ -352,4 +381,30 @@ void UWidget_OptionsScreen::OnListViewListDataModified(UListDataObject_Base* Mod
 		// Remove o Action Binding do Reset
 		RemoveActionBinding(ResetActionHandle);
 	}
+}
+
+void UWidget_OptionsScreen::HandleGetItemChildren(UObject* InItem, TArray<UObject*>& OutChildren)
+{
+	// Tenta obter o DataObject associado ao item da árvore.
+	UListDataObject_Base* FoundData = Cast<UListDataObject_Base>(InItem);
+	
+	// Aborta se o item for inválido ou não possuir filhos.
+	if (!FoundData || !FoundData->HasAnyChildListData()) return;
+	
+	// Adiciona os filhos válidos no array de saída do TreeView.
+	for (UListDataObject_Base* ChildData : FoundData->GetAllChildListData())
+	{
+		// Ignora filhos inválidos.
+		if (!ChildData) continue;
+		
+		// Define o pai hierárquico do filho quando necessário.
+		if (!ChildData->GetParentData())
+		{
+			ChildData->SetParentData(FoundData);
+		}
+		
+		// Entrega o filho ao TreeView.
+		OutChildren.Add(ChildData);
+	}
+	
 }

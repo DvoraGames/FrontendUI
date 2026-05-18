@@ -28,7 +28,7 @@
 *
 * Subclasses implementam comportamentos específicos — ex: Carousel, Toggle, Slider.
 */
-UCLASS(Abstract)
+UCLASS(Abstract, BlueprintType)
 class FRONTENDUI_API UListDataObject_Base : public UObject
 {
 	GENERATED_BODY()
@@ -57,6 +57,7 @@ public:
 	virtual TArray<UListDataObject_Base*> GetAllChildListData() const { return TArray<UListDataObject_Base*>(); }
 	
 	// Retorna se esta entrada possui filhos - false por padrão, override em subclasses que agrupam filhos.
+	UFUNCTION(BlueprintPure)
 	virtual bool HasAnyChildListData() const { return false; }
 	
 	// Define se a alteração desta opção deve ser aplicada imediatamente.
@@ -66,6 +67,22 @@ public:
 	virtual bool HasDefaultValue() const { return false; }
 	virtual bool CanResetBackToDefaultValue() const { return false; }
 	virtual bool TryResetBackToDefaultValue() { return false; }
+	
+	// Retorna a profundidade hierárquica desta entry dentro da collection.
+	UFUNCTION(BlueprintPure)
+	int32 GetHierarchyDepth() const;
+	
+	// Retorna o índice desta entry dentro dos filhos do seu pai.
+	UFUNCTION(BlueprintPure)
+	int32 GetChildIndex() const;
+	
+	// Retorna a "quantidade" de filhos da collection - pega o último indice valido para determinar a quantidade.
+	UFUNCTION(BlueprintPure)
+	int32 GetChildrenCount() const; 
+	
+	// Retorna true se esta entry for o último filho.
+	UFUNCTION(BlueprintPure)
+	bool IsLastChild() const;
 	
 protected:	
 	// Override em subclasses para implementar lógica específica de inicialização - ex: carregar save, criar filhos.
@@ -92,5 +109,5 @@ private:
 	UListDataObject_Base* ParentData;
 	
 	// Se true, força o GameUserSettings a aplicar e salvar a mudança imediatamente ao modificar esta opção
-	bool bShouldApplyChangeImmediately = false;		
+	bool bShouldApplyChangeImmediately = false;
 };

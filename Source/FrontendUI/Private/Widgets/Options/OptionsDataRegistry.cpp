@@ -34,7 +34,7 @@ GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const
 {
 	// Busca no array a aba cujo DataID corresponde ao TabID solicitado
 	UListDataObject_Collection* const* FoundTabCollectionPtr = RegisteredOptionsTabCollections.FindByPredicate(
-		[InSelectedTabID](UListDataObject_Collection* AvailableTabCollection)->bool
+		[InSelectedTabID](const UListDataObject_Collection* AvailableTabCollection)->bool
 		{
 			// Retorna true quando o DataID da aba for igual ao TabID buscado
 			return AvailableTabCollection->GetDataID() == InSelectedTabID;
@@ -44,8 +44,86 @@ GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const
 	// Garante que o TabID é válido - crasha com mensagem de erro se não encontrar
 	checkf(FoundTabCollectionPtr, TEXT("No valid Tab found under the ID %s"), *InSelectedTabID.ToString())
 	
-	// Retorna a lista de DataObjects (opções) da aba encontrada
-	return (*FoundTabCollectionPtr)->GetAllChildListData();
+	// Obtém a aba encontrada.
+	const UListDataObject_Collection* FoundTabCollection = *FoundTabCollectionPtr;
+	
+	// Armazena todos os itens da aba.
+	TArray<UListDataObject_Base*> AllChildListItems;
+	
+	// Percorre os itens filhos da aba.
+	for (UListDataObject_Base* ChildListData : FoundTabCollection->GetAllChildListData())
+	{
+		// Ignora itens inválidos.
+		if (!ChildListData) continue;
+		
+		// Adiciona o item atual ao resultado.
+		AllChildListItems.Add(ChildListData);
+		
+		// Busca os filhos do item recursivamente.
+		if (ChildListData->HasAnyChildListData())
+		{
+			FindChildren(ChildListData, AllChildListItems);
+		}
+	}
+
+	// Retorna todos os itens encontrados.
+	return AllChildListItems;
+}
+
+TArray<UListDataObject_Base*> UOptionsDataRegistry::GetTreeRootItemsBySelectedTabID(const FName InSelectedTabID) const
+{	
+	// Busca no array a aba cujo DataID corresponde ao TabID solicitado
+	UListDataObject_Collection* const* FoundTabCollectionPtr = RegisteredOptionsTabCollections.FindByPredicate(
+		[InSelectedTabID](const UListDataObject_Collection* AvailableTabCollection)->bool
+		{
+			// Retorna true quando o DataID da aba for igual ao TabID buscado
+			return AvailableTabCollection->GetDataID() == InSelectedTabID;
+		}
+	);
+	
+	checkf(FoundTabCollectionPtr, TEXT("No valid Tab found under the ID %s"), *InSelectedTabID.ToString());
+
+	// Obtém a aba encontrada.
+	const UListDataObject_Collection* FoundTabCollection = *FoundTabCollectionPtr;
+
+	// Armazena os itens raiz da aba.
+	TArray<UListDataObject_Base*> RootItems;
+
+	// Percorre os filhos diretos da aba.
+	for (UListDataObject_Base* ChildListData : FoundTabCollection->GetAllChildListData())
+	{
+		// Ignora itens inválidos.
+		if (!ChildListData) continue;
+		
+		// Adiciona o item raiz ao resultado.
+		RootItems.Add(ChildListData);
+	}
+
+	// Retorna os itens raiz encontrados.
+	return RootItems;
+}
+
+void UOptionsDataRegistry::FindChildren(UListDataObject_Base* InParentData,
+                                                        TArray<UListDataObject_Base*>& OutFoundChildListData) const
+{
+	// Aborta se o item pai for inválido ou não tiver filhos.
+	if (!InParentData || !InParentData->HasAnyChildListData()) return ;
+	
+	// Percorre os filhos do item pai.
+	for (UListDataObject_Base* Child : InParentData->GetAllChildListData())
+	{
+		// Ignora filhos inválidos.
+		if (!Child) continue;
+		
+		// Adiciona o filho ao resultado.
+		OutFoundChildListData.Add(Child);
+		
+		// Continua a busca nos próximos níveis.
+		if (Child->HasAnyChildListData())
+		{
+			FindChildren(Child, OutFoundChildListData);
+		}
+	}
 }
 
 // Cria aba "Gameplay"
@@ -167,6 +245,58 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 	UListDataObject_Collection* AudioTabCollection = NewObject<UListDataObject_Collection>();
 	AudioTabCollection->SetDataID(FName("AudioTabCollection"));
 	AudioTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Audio"));
+	
+	/*** Volume Category ***/
+	{
+		UListDataObject_Collection* VolumeCategoryCollection = NewObject<UListDataObject_Collection>();
+		
+		VolumeCategoryCollection->SetDataID(FName("VolumeCategoryCollection"));
+		VolumeCategoryCollection->SetDataDisplayName(FText::FromString(TEXT("Volume")));
+		VolumeCategoryCollection->SetIsExpanded(true);
+		
+		AudioTabCollection->AddChildListData(VolumeCategoryCollection);
+		
+		// Test Object
+		{
+			UListDataObject_Rotator* TestItem = NewObject<UListDataObject_Rotator>();
+			
+			TestItem->SetDataID(FName("TestItem"));
+			TestItem->SetDataDisplayName(FText::FromString(TEXT("Test Item")));
+			
+			TestItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
+			TestItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+
+			
+			VolumeCategoryCollection->AddChildListData(TestItem);
+		}
+		
+		/*** Teste Sub Category ***/
+		{
+			UListDataObject_Collection* SubCategoryCollection = NewObject<UListDataObject_Collection>();
+		
+			SubCategoryCollection->SetDataID(FName("SubCategoryCollection"));
+			SubCategoryCollection->SetDataDisplayName(FText::FromString(TEXT("Sub Category")));
+			SubCategoryCollection->SetIsExpanded(false);
+		
+			VolumeCategoryCollection->AddChildListData(SubCategoryCollection);
+		
+			// Test Object
+			{
+				UListDataObject_Rotator* SubItem = NewObject<UListDataObject_Rotator>();
+			
+				SubItem->SetDataID(FName("SubItem"));
+				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));
+			
+				SubItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
+				SubItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+
+			
+				SubCategoryCollection->AddChildListData(SubItem);
+			}
+		
+		
+		}
+	}
 	
 	RegisteredOptionsTabCollections.Add(AudioTabCollection);
 }

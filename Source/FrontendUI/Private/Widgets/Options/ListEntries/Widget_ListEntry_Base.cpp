@@ -6,7 +6,9 @@
 #include "CommonInputSubsystem.h"
 #include "CommonTextBlock.h"
 #include "Components/ListView.h"
+#include "Widgets/Components/Widget_EntryRow.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 
 void UWidget_ListEntry_Base::NativeOnItemHovered(bool bIsHovered)
 {
@@ -60,8 +62,17 @@ FReply UWidget_ListEntry_Base::NativeOnFocusReceived(const FGeometry& InGeometry
 	return Super::NativeOnFocusReceived(InGeometry,InFocusEvent);
 }
 
+void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
+{
+	IUserObjectListEntry::NativeOnItemExpansionChanged(bIsExpanded);
+	
+	WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpanded);
+}
+
 void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject)
 {
+	OwningListDataObject = InOwningListDataObject;
+	
 	// Verifica se o widget de texto foi vinculado no Blueprint
 	if (CommonText_SettingDisplayName)
 	{    
@@ -74,6 +85,21 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InO
 	{
 		// Faz esta entry escutar mudanças do seu DataObject para que subclasses possam ressincronizar a UI
 		InOwningListDataObject->OnListDataModified.AddUObject(this, &ThisClass::OnOwningListDataObjectModified);
+	}
+	
+	// Verifica se a row auxiliar foi vinculada no Blueprint.
+	if (WBP_EntryRow)
+	{
+		// Monta a indentação visual com base na hierarquia do DataObject.
+		WBP_EntryRow->BuildIndent(InOwningListDataObject);
+		
+		
+		// Tenta converter o item atual em uma collection.
+		if (const UListDataObject_Collection* Category = Cast<UListDataObject_Collection>(InOwningListDataObject))
+		{
+			// Atualiza a row com o estado atual de expansão da collection.
+			WBP_EntryRow->BP_OnItemExpansionChanged(Category->GetIsExpanded());
+		}
 	}
 }
 
@@ -89,4 +115,8 @@ void UWidget_ListEntry_Base::SelectThisEntryWidget() const
 	CastChecked<UListView>(GetOwningListView())->SetSelectedItem(GetListItem());
 }
 
-
+int32 UWidget_ListEntry_Base::GetOwningDataHierarchyDepth() const
+{
+	// Retorna a profundidade hierárquica do DataObject associado.
+	return OwningListDataObject ? OwningListDataObject->GetHierarchyDepth() : 0;
+}
