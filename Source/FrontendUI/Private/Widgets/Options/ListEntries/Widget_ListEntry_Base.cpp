@@ -12,13 +12,13 @@
 
 void UWidget_ListEntry_Base::NativeOnItemHovered(bool bIsHovered)
 {
-	// Repassa ao BP se esta linha entrou/saiu de hover junto com o estado atual de seleção da ListView
+	// Repassa o estado de hover da entry para o Blueprint.
 	BP_OnItemHovered(bIsHovered, IsListItemSelected());
 }
 
 void UWidget_ListEntry_Base::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
-	// Executa a lógica padrão da interface base da Unreal
+	// Executa a lógica padrão da interface base.
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 	
 	// Garante que a linha reaproveitada pela ListView volte a ficar visível ao receber um novo item
@@ -30,10 +30,10 @@ void UWidget_ListEntry_Base::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UWidget_ListEntry_Base::NativeOnEntryReleased()
 {    
-	// Executa a lógica padrão da interface base da Unreal
+	// Executa a lógica padrão da interface base.
 	IUserObjectListEntry::NativeOnEntryReleased();
 	
-	// Remove o estado de hover da linha antes dela ser reciclada para outro item.
+	// Remove o estado de hover da linha antes da reciclagem.
 	NativeOnItemHovered(false);
 }
 
@@ -46,7 +46,7 @@ FReply UWidget_ListEntry_Base::NativeOnFocusReceived(const FGeometry& InGeometry
 		if (CommonInputSubsystem->GetCurrentInputType() == ECommonInputType::Gamepad)
 		{
 			// "Pergunta" ao Blueprint qual widget interno desta entry deve receber o foco
-			if (UWidget* WidgetToFocus = BP_GetWidgetToFocusForGamepad())
+			if (const UWidget* WidgetToFocus = BP_GetWidgetToFocusForGamepad())
 			{
 				// Obtém o widget Slate já construído para conseguir aplicar o foco de fato
 				if (const TSharedPtr<SWidget> SlateWidgetToFocus = WidgetToFocus->GetCachedWidget())
@@ -62,25 +62,19 @@ FReply UWidget_ListEntry_Base::NativeOnFocusReceived(const FGeometry& InGeometry
 	return Super::NativeOnFocusReceived(InGeometry,InFocusEvent);
 }
 
-void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
-{
-	IUserObjectListEntry::NativeOnItemExpansionChanged(bIsExpanded);
-	
-	WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpanded);
-}
-
 void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject)
 {
+	// Armazena o DataObject associado à entry.
 	OwningListDataObject = InOwningListDataObject;
 	
 	// Verifica se o widget de texto foi vinculado no Blueprint
 	if (CommonText_SettingDisplayName)
 	{    
-		// Preenche o texto da entry com o DisplayName da configuração (ex: Difficulty, Language, Volume)
+		// Atualiza o texto da entry com o nome da configuração (ex: Difficulty, Language, Volume)
 		CommonText_SettingDisplayName->SetText(InOwningListDataObject->GetDataDisplayName());
 	}
 	
-    // Evita bind duplicado quando a mesma entry é reciclada/reutilizada pela ListView para o mesmo DataObject
+	// Evita registrar o mesmo bind mais de uma vez.
 	if (!InOwningListDataObject->OnListDataModified.IsBoundToObject(this))
 	{
 		// Faz esta entry escutar mudanças do seu DataObject para que subclasses possam ressincronizar a UI
@@ -90,15 +84,15 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InO
 	// Verifica se a row auxiliar foi vinculada no Blueprint.
 	if (WBP_EntryRow)
 	{
-		// Monta a indentação visual com base na hierarquia do DataObject.
+		// Monta a indentação com base na hierarquia.
 		WBP_EntryRow->BuildIndent(InOwningListDataObject);
 		
-		
+		/*** Arrumar? ***/
 		// Tenta converter o item atual em uma collection.
 		if (const UListDataObject_Collection* Category = Cast<UListDataObject_Collection>(InOwningListDataObject))
 		{
-			// Atualiza a row com o estado atual de expansão da collection.
-			WBP_EntryRow->BP_OnItemExpansionChanged(Category->GetIsExpanded());
+			// Atualiza o estado de expansão quando o item for uma collection.
+			WBP_EntryRow->BP_OnItemExpansionChanged(Category->GetbIsExpandable(), Category->GetbIsExpanded());
 		}
 	}
 }
@@ -109,9 +103,22 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectModified(UListDataObject_Base
 	// Intencionalmente vazio na base - subclasses sobrescrevem para atualizar seus controles visuais
 }
 
+void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
+{
+	// Executa a lógica padrão da interface base.
+	IUserObjectListEntry::NativeOnItemExpansionChanged(bIsExpanded);
+	
+	// Verifica se a WBP_EntryRow e OwningListDataObject são validos
+	if (WBP_EntryRow && OwningListDataObject)
+	{
+		// Atualiza o estado visual de expansão da row.
+		WBP_EntryRow->BP_OnItemExpansionChanged(OwningListDataObject->GetbIsExpandable(), bIsExpanded);
+	}
+}
+
 void UWidget_ListEntry_Base::SelectThisEntryWidget() const
 {
-	// Solicita à ListView dona que selecione o item associado a esta entry
+	// Seleciona o item associado na Lista.
 	CastChecked<UListView>(GetOwningListView())->SetSelectedItem(GetListItem());
 }
 

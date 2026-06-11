@@ -67,20 +67,11 @@ int32 UListDataObject_Base::GetChildIndex() const
 	return ParentCollection->GetAllChildListData().IndexOfByKey(this);
 }
 
-int32 UListDataObject_Base::GetChildrenCount() const
-{
-	// Retorna zero se esta entry não possuir pai.
-	if (!ParentData) return 0;
-	
-	// Retorna o último índice válido dentro dos filhos do pai.
-	return ParentData->GetAllChildListData().Num() - 1;
-}
-
 bool UListDataObject_Base::IsLastChild() const
 {	
-	// Retorna false se esta entry não possuir pai.
+	// Retorna false se esta entry não possuir data object pai.
 	if (!ParentData) return false;
 	
 	// retorna true se a entry tem o mesmo índice da última Entry entre os filhos do pai.
-	return GetChildIndex() == GetChildrenCount();
+	return GetChildIndex() == ParentData->GetAllChildListData().Num() - 1;
 }

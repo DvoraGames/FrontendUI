@@ -8,43 +8,55 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
+bool UFrontendCommonTreeView::OnIsSelectableOrNavigableInternal(UObject* SelectedItem)
+{
+	// Converte o item selecionada para o item base.
+	const UListDataObject_Base* SelectedEntryData = Cast<UListDataObject_Base>(SelectedItem);
+	
+	// Aborta se o item for inválido.
+	if (!SelectedEntryData) return false;
+	
+	// Retorna se o item pode ser selecionado.
+	return SelectedEntryData->GetIsSelectable();
+}
+
 UUserWidget& UFrontendCommonTreeView::OnGenerateEntryWidgetInternal(UObject* Item,
 	TSubclassOf<UUserWidget> DesiredEntryClass, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	// Em design time não há mapeamento disponível - usa o comportamento padrão
+	// Usa o comportamento padrão durante o design time.
 	if (IsDesignTime())
 	{
 		return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
 	}
 	
 	// Consulta o DataAsset para encontrar o widget correspondente ao tipo do DataObject
-	if (TSubclassOf<UWidget_ListEntry_Base> FoundWidgetClass = 
+	if (const TSubclassOf<UWidget_ListEntry_Base> FoundWidgetClass = 
 		DataListEntryMapping->FindEntryWidgetClassByDataObject(CastChecked<UListDataObject_Base>(Item)))
 	{
-		// Widget encontrado no mapeamento - gera a entrada tipada com o widget correto
+		// Gera a entry tipada com o widget encontrado.
 		return GenerateTypedEntry<UWidget_ListEntry_Base>(FoundWidgetClass, OwnerTable);
 	}
 	
-	// Fallback - nenhum mapeamento encontrado, usa o widget padrão da lista
+	// Fallback - usa o widget padrão quando não houver mapeamento.
 	return Super::OnGenerateEntryWidgetInternal(Item, DesiredEntryClass, OwnerTable);
 }
 
 void UFrontendCommonTreeView::SetTreeViewItems(const TArray<UListDataObject_Base*>& InTreeItems)
 {
-	// Filtra apenas itens válidos antes de enviar para o TreeView.
+	// Armazena apenas os itens válidos da árvore.
 	TArray<UObject*> TreeItems;
 	
-	// Percorre todos os itens recebidos para o TreeView.
+	// Percorre os itens recebidos para o TreeView.
 	for (UListDataObject_Base* TreeItem : InTreeItems)
 	{
 		// Ignora itens inválidos.
 		if (!TreeItem) continue;
 		
-		// Adiciona o item válido no array final do TreeView.
+		// Adiciona o item válido no array.
 		TreeItems.Add(TreeItem);
 	}
 	
-	// Define os itens iniciais que serão exibidos pelo TreeView.
+	// Define os itens exibidos pelo TreeView.
 	SetListItems(TreeItems);
 }
 
@@ -54,10 +66,10 @@ void UFrontendCommonTreeView::ValidateCompiledDefaults(class IWidgetCompilerLog&
 {
 	Super::ValidateCompiledDefaults(CompileLog);
 	
-	// Emite erro de compilação se o DataAsset obrigatório não estiver configurado
+	// Emite erro se o DataListEntryMapping não estiver configurado.
 	if (!DataListEntryMapping)
 	{   
-		// Emite erro de compilação informando que o Data Asset é obrigatório
+		// Registra erro de compilação para o Blueprint.
 		CompileLog.Error(FText::FromString(
 			TEXT("The variable DataListEntryMapping hasn't valid data asset assigned ") +
 			GetClass()->GetName() + 

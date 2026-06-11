@@ -251,7 +251,7 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 		// Sincroniza na árvore o estado atual de expansão das coleções.
 		if (UListDataObject_Collection* Collection = Cast<UListDataObject_Collection>(Item))
 		{
-			CommonTreeView_OptionsList->SetItemExpansion(Collection, Collection->GetIsExpanded());
+			CommonTreeView_OptionsList->SetItemExpansion(Collection, Collection->GetbIsExpanded());
 		}
 	}		
 		

@@ -9,23 +9,34 @@
 
 class UListDataObject_Base;
 class UDataAsset_DataListEntryMapping;
+
 /**
- * 
- */
+* UFrontendCommonTreeView
+*
+* TreeView customizada do Frontend.
+* Usa um DataAsset para mapear cada tipo de DataObject ao Entry Widget correspondente.
+*/
 UCLASS()
 class FRONTENDUI_API UFrontendCommonTreeView : public UCommonTreeView
 {
 	GENERATED_BODY()
 	
 protected:
-	//~ Begin UCommonListView Interface
-	/* Sobrescrito para gerar o Entry Widget por tipo de DataObject. Mapeado no DataListEntryMapping — se não encontrar, 
+	//~ Begin UListViewBase Interface
+	// Retorna se o item pode ser selecionado ou navegável.
+	virtual bool OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem) override;
+	//~ End UListViewBase Interface
+
+	//~ Begin UCommonTreeView Interface
+	/* Gerar a Entry Widget por tipo de DataObject. Mapeado no DataListEntryMapping, se não encontrar, 
 	 * usa o widget padrão da lista. */
-	virtual  UUserWidget& OnGenerateEntryWidgetInternal(UObject* Item, TSubclassOf<UUserWidget> DesiredEntryClass, const TSharedRef<STableViewBase>& OwnerTable) override;
-	//~ End UCommonListView Interface
+	virtual  UUserWidget& OnGenerateEntryWidgetInternal(
+		UObject* Item, TSubclassOf<UUserWidget> DesiredEntryClass, const TSharedRef<STableViewBase>& OwnerTable) override;
+	//~ End UCommonTreeView Interface
+	
 	
 public:
-	// Define os itens iniciais que serão usados como source do TreeView.
+	// Define os itens raiz usados pela TreeView.
 	void SetTreeViewItems(const TArray<UListDataObject_Base*>& InTreeItems);
 
 private:
@@ -36,7 +47,7 @@ private:
 #endif
 	//~ End UWidget Interface
 	
-	// Data Asset que mapeia cada tipo de DataObject ao seu Entry Widget visual correspondente.
-	UPROPERTY(EditAnywhere, Category = "Frontend List View Settings")
+	// Data Asset que mapeia cada tipo de DataObject ao seu Entry Widget correspondente.
+	UPROPERTY(EditAnywhere, Category = "Frontend Tree View Settings")
 	UDataAsset_DataListEntryMapping* DataListEntryMapping;
 };

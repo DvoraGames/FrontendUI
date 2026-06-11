@@ -7,6 +7,7 @@
 #include "Widget_EntryRow.generated.h"
 
 
+class UFrontendCommonTreeView;
 class UListDataObject_Base;
 
 /**
@@ -31,14 +32,14 @@ public:
 	
 	// Evento em Blueprint chamado quando o estado de expansão do item é alterado.
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="On Item Expansion Changed")
-	void BP_OnItemExpansionChanged(bool bIsExpanded);
+	void BP_OnItemExpansionChanged(bool bIsExpandable, bool bIsExpanded);
 	
-	// Solicita a alternância do estado de expansão do item atual.
+	// Solicita a troca do estado de expansão do item.
 	UFUNCTION(BlueprintCallable)
-	void RequestToggleExpansion();
+	void RequestToggleExpansion() const;
 	
 private:	
-	// DataObject atualmente associado a esta row.
+	// DataObject associado a esta row.
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UListDataObject_Base* EntryDataObject;
 };

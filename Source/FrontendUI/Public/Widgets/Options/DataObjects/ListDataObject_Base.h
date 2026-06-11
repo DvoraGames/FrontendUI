@@ -17,7 +17,9 @@
 	FORCEINLINE DataType Get##PropertyName() const { return PropertyName; } \
 	void Set##PropertyName(DataType In##PropertyName) { PropertyName = In##PropertyName; }
 
-
+#define LIST_DATA_VIRTUAL_ACCESSOR(DataType, PropertyName) \
+	virtual DataType Get##PropertyName() const { return PropertyName; } \
+	virtual void Set##PropertyName(DataType In##PropertyName) { PropertyName = In##PropertyName; }
 
 /**
 * UListDataObject_Base
@@ -28,7 +30,7 @@
 *
 * Subclasses implementam comportamentos específicos — ex: Carousel, Toggle, Slider.
 */
-UCLASS(Abstract, BlueprintType)
+UCLASS(Abstract)
 class FRONTENDUI_API UListDataObject_Base : public UObject
 {
 	GENERATED_BODY()
@@ -49,40 +51,60 @@ public:
 	LIST_DATA_ACCESSOR(FText, DisabledRichText)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, SoftDescriptionImage)
 	LIST_DATA_ACCESSOR(UListDataObject_Base*, ParentData)
+	LIST_DATA_ACCESSOR(bool, IsSelectable)
 	
-	// Chama OnDataObjectInitialized - ponto de entrada para subclasses fazerem seu setup específico.
+	// ----------------------------------------------------------
+	// Getters e Setters Virtuais (Pode Sobrescrever) — gerados via LIST_DATA_VIRTUAL_ACCESSOR
+	// ----------------------------------------------------------
+	LIST_DATA_VIRTUAL_ACCESSOR(bool, bIsExpandable);
+	LIST_DATA_VIRTUAL_ACCESSOR(bool, bIsExpanded);
+	
+	// Inicializa o DataObject.
 	void InitDataObject();
 	
-	// Retorna array com todos os DataObjects filhos - vazio por padrão, override em subclasses que agrupam filhos.
+	// Retorna todos os DataObjects filhos do item - vazio por padrão.
 	virtual TArray<UListDataObject_Base*> GetAllChildListData() const { return TArray<UListDataObject_Base*>(); }
 	
-	// Retorna se esta entrada possui filhos - false por padrão, override em subclasses que agrupam filhos.
+	// Retorna se o item possui filhos - false por padrão.
 	UFUNCTION(BlueprintPure)
 	virtual bool HasAnyChildListData() const { return false; }
 	
-	// Define se a alteração desta opção deve ser aplicada imediatamente.
+	// Define se a alteração deve ser aplicada imediatamente.
 	void SetShouldApplySettingsImmediately(const bool bShouldApplyRightAway) { bShouldApplyChangeImmediately = bShouldApplyRightAway; }
 	
-	// As classes filhas devem sobrescrever essas funções para implementar a lógica de Reset.
+	// Retorna se o item possui valor padrão.
 	virtual bool HasDefaultValue() const { return false; }
+	
+	// Retorna se o item pode ser resetado.
 	virtual bool CanResetBackToDefaultValue() const { return false; }
+	
+	// Retorna a tentativa de resetar o item para o valor padrão.
 	virtual bool TryResetBackToDefaultValue() { return false; }
 	
-	// Retorna a profundidade hierárquica desta entry dentro da collection.
+	/*** Arrumar? ***/
+	// Retorna a profundidade do item na hierarquia.
 	UFUNCTION(BlueprintPure)
 	int32 GetHierarchyDepth() const;
-	
-	// Retorna o índice desta entry dentro dos filhos do seu pai.
+		
+	// Retorna o índice do item dentro do pai.
 	UFUNCTION(BlueprintPure)
 	int32 GetChildIndex() const;
 	
-	// Retorna a "quantidade" de filhos da collection - pega o último indice valido para determinar a quantidade.
-	UFUNCTION(BlueprintPure)
-	int32 GetChildrenCount() const; 
-	
-	// Retorna true se esta entry for o último filho.
+	// Retorna se o item é o último filho.
 	UFUNCTION(BlueprintPure)
 	bool IsLastChild() const;
+	
+	// Retorna se o item pode ser expandido.
+	UFUNCTION(BlueprintPure)
+	bool GetIsExpandable() const { return GetbIsExpandable(); }
+	
+	// Retorna se o item está expandido.
+	UFUNCTION(BlueprintPure)
+	bool GetIsExpanded() const { return GetbIsExpanded(); }
+	
+	// Retorna o pai para uso em Blueprint.
+	UFUNCTION(BlueprintPure, DisplayName="GetParentData")
+	UListDataObject_Base* BP_GetParentData() const { return ParentData; }
 	
 protected:	
 	// Override em subclasses para implementar lógica específica de inicialização - ex: carregar save, criar filhos.
@@ -103,11 +125,14 @@ private:
 	FText DescriptionRichText;							// Descrição com suporte a RichText
 	FText DisabledRichText;								// Texto exibido quando a opção está desabilitada
 	TSoftObjectPtr<UTexture2D> SoftDescriptionImage;	// Imagem descritiva - carregada sob demanda (lazy)
+	bool IsSelectable = true;							// Define se o item pode ser selecionado.
+	bool bIsExpandable = false;							// Define se a Collection/Category será Expansivel ou Fixa
+	bool bIsExpanded = false;							// Define se a Collection/Category irá iniciar expandida 
 	
-	// Referência ao pai na hierarquia - não serializada, reconstruída em runtime
+	// Armazena ar eferência ao pai hierárquico do item - não serializada, reconstruída em runtime.
 	UPROPERTY(Transient)
 	UListDataObject_Base* ParentData;
 	
-	// Se true, força o GameUserSettings a aplicar e salvar a mudança imediatamente ao modificar esta opção
+	// Define se a alteração deve ser aplicada imediatamente.
 	bool bShouldApplyChangeImmediately = false;
 };

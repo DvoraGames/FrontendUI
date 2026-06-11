@@ -9,7 +9,9 @@
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Category.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
+#include "Widgets/Options/DataObjects/ListDataObject_SubCategory.h"
 
 using namespace FFrontendLocHelper;
 using namespace FFrontendFormatCase;
@@ -248,13 +250,14 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 	
 	/*** Volume Category ***/
 	{
-		UListDataObject_Collection* VolumeCategoryCollection = NewObject<UListDataObject_Collection>();
+		UListDataObject_Category* VolumeCategory = NewObject<UListDataObject_Category>();
 		
-		VolumeCategoryCollection->SetDataID(FName("VolumeCategoryCollection"));
-		VolumeCategoryCollection->SetDataDisplayName(FText::FromString(TEXT("Volume")));
-		VolumeCategoryCollection->SetIsExpanded(true);
+		VolumeCategory->SetDataID(FName("VolumeCategoryCollection"));
+		VolumeCategory->SetDataDisplayName(FText::FromString(TEXT("Volume")));
+		VolumeCategory->SetbIsExpandable(false);
+		VolumeCategory->SetbIsExpanded(true);
 		
-		AudioTabCollection->AddChildListData(VolumeCategoryCollection);
+		AudioTabCollection->AddChildListData(VolumeCategory);
 		
 		// Test Object
 		{
@@ -267,18 +270,18 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			TestItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
 
 			
-			VolumeCategoryCollection->AddChildListData(TestItem);
+			VolumeCategory->AddChildListData(TestItem);
 		}
 		
 		/*** Teste Sub Category ***/
 		{
-			UListDataObject_Collection* SubCategoryCollection = NewObject<UListDataObject_Collection>();
+			UListDataObject_SubCategory* SubCategory = NewObject<UListDataObject_SubCategory>();
 		
-			SubCategoryCollection->SetDataID(FName("SubCategoryCollection"));
-			SubCategoryCollection->SetDataDisplayName(FText::FromString(TEXT("Sub Category")));
-			SubCategoryCollection->SetIsExpanded(false);
+			SubCategory->SetDataID(FName("SubCategoryCollection"));
+			SubCategory->SetDataDisplayName(FText::FromString(TEXT("Sub Category")));
+			SubCategory->SetbIsExpanded(false);
 		
-			VolumeCategoryCollection->AddChildListData(SubCategoryCollection);
+			VolumeCategory->AddChildListData(SubCategory);
 		
 			// Test Object
 			{
@@ -291,7 +294,21 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 				SubItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
 
 			
-				SubCategoryCollection->AddChildListData(SubItem);
+				SubCategory->AddChildListData(SubItem);
+			}
+			
+			// Test Object
+			{
+				UListDataObject_Rotator* SubItem2 = NewObject<UListDataObject_Rotator>();
+			
+				SubItem2->SetDataID(FName("SubItem2"));
+				SubItem2->SetDataDisplayName(FText::FromString(TEXT("SubItem2")));
+			
+				SubItem2->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
+				SubItem2->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+
+			
+				SubCategory->AddChildListData(SubItem2);
 			}
 		
 		
