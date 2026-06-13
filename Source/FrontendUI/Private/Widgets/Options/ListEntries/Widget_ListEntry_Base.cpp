@@ -7,8 +7,8 @@
 #include "CommonTextBlock.h"
 #include "Components/ListView.h"
 #include "Widgets/Components/Widget_EntryRow.h"
+#include "Widgets/Options/DataObjects/IListDataWithChildren.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 
 void UWidget_ListEntry_Base::NativeOnItemHovered(bool bIsHovered)
 {
@@ -21,7 +21,7 @@ void UWidget_ListEntry_Base::NativeOnListItemObjectSet(UObject* ListItemObject)
 	// Executa a lógica padrão da interface base.
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 	
-	// Garante que a linha reaproveitada pela ListView volte a ficar visível ao receber um novo item
+	// Garante que a entry reciclada volte visível.
 	SetVisibility(ESlateVisibility::Visible);
 	
 	// Converte o item genérico da ListView para o DataObject esperado e inicia o setup visual/lógico da entry
@@ -86,13 +86,16 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InO
 	{
 		// Monta a indentação com base na hierarquia.
 		WBP_EntryRow->BuildIndent(InOwningListDataObject);
-		
-		/*** Arrumar? ***/
-		// Tenta converter o item atual em uma collection.
-		if (const UListDataObject_Collection* Category = Cast<UListDataObject_Collection>(InOwningListDataObject))
+
+		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
+		if (InOwningListDataObject->Implements<UIListDataWithChildren>())
 		{
-			// Atualiza o estado de expansão quando o item for uma collection.
-			WBP_EntryRow->BP_OnItemExpansionChanged(Category->GetbIsExpandable(), Category->GetbIsExpanded());
+			// Lê o estado expansível e expandido do item.
+			bool bIsExpansible = IIListDataWithChildren::Execute_GetIsExpandable(OwningListDataObject);
+			bool bIsExpanded = IIListDataWithChildren::Execute_GetIsExpanded(OwningListDataObject);
+			
+			// Sincroniza a row com o estado atual da coleção.
+			WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpansible, bIsExpanded);
 		}
 	}
 }
@@ -111,8 +114,15 @@ void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
 	// Verifica se a WBP_EntryRow e OwningListDataObject são validos
 	if (WBP_EntryRow && OwningListDataObject)
 	{
-		// Atualiza o estado visual de expansão da row.
-		WBP_EntryRow->BP_OnItemExpansionChanged(OwningListDataObject->GetbIsExpandable(), bIsExpanded);
+		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
+		if (OwningListDataObject->Implements<UIListDataWithChildren>())
+		{
+			// Lê o estado atual de expansão.
+			const bool bIsExpandable = IIListDataWithChildren::Execute_GetIsExpandable(OwningListDataObject);
+			
+			// Atualiza o visual da row com o estado atual.
+			WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpandable, bIsExpanded);
+		}
 	}
 }
 
@@ -125,5 +135,5 @@ void UWidget_ListEntry_Base::SelectThisEntryWidget() const
 int32 UWidget_ListEntry_Base::GetOwningDataHierarchyDepth() const
 {
 	// Retorna a profundidade hierárquica do DataObject associado.
-	return OwningListDataObject ? OwningListDataObject->GetHierarchyDepth() : 0;
+	return OwningListDataObject ? OwningListDataObject->GetEntryHierarchyDepth() : 0;
 }

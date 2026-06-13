@@ -15,6 +15,7 @@
 #include "Widgets/Options/OptionsDataRegistry.h"
 #include "Widgets/Options/Widget_OptionsDetailsView.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
+#include "Widgets/Options/DataObjects/ListDataObject_TabCollection.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
 using namespace FFrontendLocHelper;
@@ -59,7 +60,7 @@ void UWidget_OptionsScreen::NativeOnActivated()
 	//   1. GetOrCreateDataRegistry() retorna o Registry (cria se não existir)
 	//   2. ->GetRegisteredOptionsTabCollection() retorna o array de abas
 	//   3. O loop itera sobre esse array já montado
-	for (UListDataObject_Collection* TabCollection : GetOrCreateDataRegistry()->GetRegisteredOptionsTabCollection())
+	for (UListDataObject_TabCollection* TabCollection : GetOrCreateDataRegistry()->GetRegisteredOptionsTabCollection())
 	{
         // Ignora entradas inválidas por segurança
 		if (!TabCollection) continue;
@@ -248,10 +249,11 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 			ResettableDataArray.AddUnique(Item);
 		}
 		
-		// Sincroniza na árvore o estado atual de expansão das coleções.
-		if (UListDataObject_Collection* Collection = Cast<UListDataObject_Collection>(Item))
+		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
+		if (Item->Implements<UIListDataWithChildren>())
 		{
-			CommonTreeView_OptionsList->SetItemExpansion(Collection, Collection->GetbIsExpanded());
+			// Sincroniza a expansão do item com o estado do DataObject.
+			CommonTreeView_OptionsList->SetItemExpansion(Item, IIListDataWithChildren::Execute_GetIsExpanded(Item));
 		}
 	}		
 		
@@ -315,8 +317,9 @@ void UWidget_OptionsScreen::OnListItemSelected(UObject* InSelectedItem) const
 	// Ignora callbacks disparados com item nulo
 	if (!InSelectedItem) return;
 	
-	// Collections não atualizam a DetailsView neste fluxo.
-	if (UListDataObject_Collection* SelectedCollection = Cast<UListDataObject_Collection>(InSelectedItem))
+	/*** Talvez Precise Modificar pois futuras entries com filhos também poderam precisar aparecer no Detail Panel ***/
+	// Ignora itens que possuem filhos.
+	if (InSelectedItem->Implements<UIListDataWithChildren>())
 	{
 		return;
 	}
@@ -389,10 +392,14 @@ void UWidget_OptionsScreen::HandleGetItemChildren(UObject* InItem, TArray<UObjec
 	UListDataObject_Base* FoundData = Cast<UListDataObject_Base>(InItem);
 	
 	// Aborta se o item for inválido ou não possuir filhos.
-	if (!FoundData || !FoundData->HasAnyChildListData()) return;
+	if (!FoundData || !FoundData->Implements<UIListDataWithChildren>()) return;
+	
+	IIListDataWithChildren* DataWithChildren = Cast<IIListDataWithChildren>(FoundData);
+	
+	if (!DataWithChildren->HasAnyChildListData()) return;
 	
 	// Adiciona os filhos válidos no array de saída do TreeView.
-	for (UListDataObject_Base* ChildData : FoundData->GetAllChildListData())
+	for (UListDataObject_Base* ChildData : DataWithChildren->GetAllChildListData())
 	{
 		// Ignora filhos inválidos.
 		if (!ChildData) continue;

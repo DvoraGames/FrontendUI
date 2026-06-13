@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "OptionsDataRegistry.generated.h"
 
+class UListDataObject_TabCollection;
 class UListDataObject_Base;
 class UListDataObject_Collection;
 
@@ -29,7 +30,7 @@ public:
 	void InitOptionsDataRegistry(ULocalPlayer* OwningLocalPlayer);
 	
 	// Retorna o array com todas as abas registradas - usado pela OptionsScreen para criar os botões do TabList.
-	const TArray<UListDataObject_Collection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollections; }
+	const TArray<UListDataObject_TabCollection*>& GetRegisteredOptionsTabCollection() const { return RegisteredOptionsTabCollections; }
 	
 	// Retorna todos os itens (opções) da aba identificada pelo TabID - usados como source da List View.
 	TArray<UListDataObject_Base*> GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const;
@@ -55,5 +56,5 @@ private:
 	
 	// Array com as abas registradas - Transient, reconstruído a cada sessão.
 	UPROPERTY(Transient)
-	TArray<UListDataObject_Collection*> RegisteredOptionsTabCollections;
+	TArray<UListDataObject_TabCollection*> RegisteredOptionsTabCollections;
 };

@@ -2,27 +2,36 @@
 
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 
+void UListDataObject_Collection::OnDataObjectInitialized()
+{
+	// Executa a inicialização da classe base.
+	Super::OnDataObjectInitialized();
+}
+
 void UListDataObject_Collection::AddChildListData(UListDataObject_Base* InChildListData)
 {
-	// Registra esta aba como pai da opção filha
+	// Aborta se o filho for inválido.
+	if (!InChildListData) return;
+	
+	// Define esta coleção como pai do filho.
 	InChildListData->SetParentData(this);
 	
-	// Adiciona a opção filha ao array interno desta aba
+	// Armazena a opção filha a coleção interna desta aba.
 	ChildListDataArray.Add(InChildListData);
 	
-	// Inicializa a opção filha - dispara o OnDataObjectInitialized da subclasse
+	// Inicializa o DataObject filho.
 	InChildListData->InitDataObject();
 }
 
 TArray<UListDataObject_Base*> UListDataObject_Collection::GetAllChildListData() const
 {
-	// Retorna todas as opções pertencentes a esta aba
+	// Retorna todos os filhos da coleção.
 	return ChildListDataArray;
 }
 
 bool UListDataObject_Collection::HasAnyChildListData() const
 {
-	// Retorna true se a lista n estiver vazia
+	// Retorna se existem filhos registrados.
 	return !ChildListDataArray.IsEmpty();
 }
 

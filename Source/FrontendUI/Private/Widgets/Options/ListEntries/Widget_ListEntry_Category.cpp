@@ -8,12 +8,12 @@
 void UWidget_ListEntry_Category::NativeOnItemExpansionChanged(bool bIsExpanded)
 {
 	// Bloqueia a expansão quando a categoria não for expansível.
-	if (!CachedOwningCollectionDataObject->GetbIsExpandable())
+	if (!IIListDataWithChildren::Execute_GetIsExpandable(CachedOwningCollectionDataObject))
 	{
 		// Força o TreeView a manter o estado original
 		CastChecked<UCommonTreeView>(GetOwningListView())->SetItemExpansion(
 			CachedOwningCollectionDataObject,
-			CachedOwningCollectionDataObject->GetbIsExpanded()
+			IIListDataWithChildren::Execute_GetIsExpanded(CachedOwningCollectionDataObject)
 		);
 		return;
 	}

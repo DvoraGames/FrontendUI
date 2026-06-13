@@ -17,10 +17,6 @@
 	FORCEINLINE DataType Get##PropertyName() const { return PropertyName; } \
 	void Set##PropertyName(DataType In##PropertyName) { PropertyName = In##PropertyName; }
 
-#define LIST_DATA_VIRTUAL_ACCESSOR(DataType, PropertyName) \
-	virtual DataType Get##PropertyName() const { return PropertyName; } \
-	virtual void Set##PropertyName(DataType In##PropertyName) { PropertyName = In##PropertyName; }
-
 /**
 * UListDataObject_Base
 *
@@ -53,12 +49,6 @@ public:
 	LIST_DATA_ACCESSOR(UListDataObject_Base*, ParentData)
 	LIST_DATA_ACCESSOR(bool, IsSelectable)
 	
-	// ----------------------------------------------------------
-	// Getters e Setters Virtuais (Pode Sobrescrever) — gerados via LIST_DATA_VIRTUAL_ACCESSOR
-	// ----------------------------------------------------------
-	LIST_DATA_VIRTUAL_ACCESSOR(bool, bIsExpandable);
-	LIST_DATA_VIRTUAL_ACCESSOR(bool, bIsExpanded);
-	
 	// Inicializa o DataObject.
 	void InitDataObject();
 	
@@ -81,10 +71,9 @@ public:
 	// Retorna a tentativa de resetar o item para o valor padrão.
 	virtual bool TryResetBackToDefaultValue() { return false; }
 	
-	/*** Arrumar? ***/
 	// Retorna a profundidade do item na hierarquia.
 	UFUNCTION(BlueprintPure)
-	int32 GetHierarchyDepth() const;
+	int32 GetEntryHierarchyDepth() const;
 		
 	// Retorna o índice do item dentro do pai.
 	UFUNCTION(BlueprintPure)
@@ -94,13 +83,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	bool IsLastChild() const;
 	
-	// Retorna se o item pode ser expandido.
+	// Retorna se o item pertence a uma subcategoria.
 	UFUNCTION(BlueprintPure)
-	bool GetIsExpandable() const { return GetbIsExpandable(); }
-	
-	// Retorna se o item está expandido.
-	UFUNCTION(BlueprintPure)
-	bool GetIsExpanded() const { return GetbIsExpanded(); }
+	bool IsSubCategoryItem() const;
 	
 	// Retorna o pai para uso em Blueprint.
 	UFUNCTION(BlueprintPure, DisplayName="GetParentData")
@@ -126,8 +111,6 @@ private:
 	FText DisabledRichText;								// Texto exibido quando a opção está desabilitada
 	TSoftObjectPtr<UTexture2D> SoftDescriptionImage;	// Imagem descritiva - carregada sob demanda (lazy)
 	bool IsSelectable = true;							// Define se o item pode ser selecionado.
-	bool bIsExpandable = false;							// Define se a Collection/Category será Expansivel ou Fixa
-	bool bIsExpanded = false;							// Define se a Collection/Category irá iniciar expandida 
 	
 	// Armazena ar eferência ao pai hierárquico do item - não serializada, reconstruída em runtime.
 	UPROPERTY(Transient)

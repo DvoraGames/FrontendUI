@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IListDataWithChildren.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 #include "ListDataObject_Collection.generated.h"
 
@@ -13,23 +14,43 @@
 * Não armazena valor - apenas agrupa opções filhas (ex. Volume, SFX, Dificuldade).
 */
 UCLASS(Abstract)
-class FRONTENDUI_API UListDataObject_Collection : public UListDataObject_Base
+class FRONTENDUI_API UListDataObject_Collection : public UListDataObject_Base, public IIListDataWithChildren
 {
 	GENERATED_BODY()
 	
 public:
-	// Inicializa e registra uma opção filha dentro desta aba.
-	void AddChildListData(UListDataObject_Base* InChildListData);
+	//~ Start IIListDataWithChildren Interface
+	// Adiciona um filho à coleção.
+	virtual void AddChildListData(UListDataObject_Base* InChildListData) override;
 	
-	// Retorna o array com todas as opções filhas desta aba.
-	virtual TArray<UListDataObject_Base*> GetAllChildListData() const override;   
+	// Retorna todos os filhos da coleção.
+	virtual TArray<UListDataObject_Base*> GetAllChildListData() const override;
 	
-    // Retorna true se esta aba possui pelo menos uma opção filha.
+	// Retorna se a coleção possui filhos.
 	virtual bool HasAnyChildListData() const override;
-	//~ End UListDataObject_Base Interface
+	
+	// Define se a coleção pode ser expandida.
+	virtual void SetIsExpandable(bool bInIsExpandable) override { bIsExpandable = bInIsExpandable; }
+	
+	// Define se a coleção está expandida.
+	virtual void SetIsExpanded(bool bInIsExpanded) override { bIsExpanded = bInIsExpanded; }
+
+	// Retorna se a coleção pode ser expandida.
+	virtual bool GetIsExpandable_Implementation() const override { return bIsExpandable; }
+
+	// Retorna se a coleção está expandida.
+	virtual bool GetIsExpanded_Implementation() const override { return bIsExpanded; }
+	//~ End IIListDataWithChildren Interface
+	
+protected:
+	// Executa a inicialização específica da coleção.
+	virtual void OnDataObjectInitialized() override;
 
 private:
 	// Lista de opções pertencentes a esta aba - reconstruída em runtime, não serializada.
 	UPROPERTY(Transient)
 	TArray<UListDataObject_Base*> ChildListDataArray;
+	
+	bool bIsExpandable = false;				// Define se a coleção pode ser expandida.
+	bool bIsExpanded = false; 				// Define se a coleção inicia expandida.
 };
