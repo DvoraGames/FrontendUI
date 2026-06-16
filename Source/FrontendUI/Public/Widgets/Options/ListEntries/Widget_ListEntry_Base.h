@@ -86,5 +86,5 @@ private:
 	
 	// Widget auxiliar da row responsável por indentação e expansão visual.
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
-	UWidget_EntryRow* WBP_EntryRow;
+	UWidget_EntryRow* WBP_Entry_RowLayout;
 };

@@ -82,10 +82,10 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InO
 	}
 	
 	// Verifica se a row auxiliar foi vinculada no Blueprint.
-	if (WBP_EntryRow)
+	if (WBP_Entry_RowLayout)
 	{
 		// Monta a indentação com base na hierarquia.
-		WBP_EntryRow->BuildIndent(InOwningListDataObject);
+		WBP_Entry_RowLayout->BuildIndent(InOwningListDataObject);
 
 		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
 		if (InOwningListDataObject->Implements<UIListDataWithChildren>())
@@ -95,7 +95,7 @@ void UWidget_ListEntry_Base::OnOwningListDataObjectSet(UListDataObject_Base* InO
 			bool bIsExpanded = IIListDataWithChildren::Execute_GetIsExpanded(OwningListDataObject);
 			
 			// Sincroniza a row com o estado atual da coleção.
-			WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpansible, bIsExpanded);
+			WBP_Entry_RowLayout->BP_OnItemExpansionChanged(bIsExpansible, bIsExpanded);
 		}
 	}
 }
@@ -112,7 +112,7 @@ void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
 	IUserObjectListEntry::NativeOnItemExpansionChanged(bIsExpanded);
 	
 	// Verifica se a WBP_EntryRow e OwningListDataObject são validos
-	if (WBP_EntryRow && OwningListDataObject)
+	if (WBP_Entry_RowLayout && OwningListDataObject)
 	{
 		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
 		if (OwningListDataObject->Implements<UIListDataWithChildren>())
@@ -121,7 +121,7 @@ void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(bool bIsExpanded)
 			const bool bIsExpandable = IIListDataWithChildren::Execute_GetIsExpandable(OwningListDataObject);
 			
 			// Atualiza o visual da row com o estado atual.
-			WBP_EntryRow->BP_OnItemExpansionChanged(bIsExpandable, bIsExpanded);
+			WBP_Entry_RowLayout->BP_OnItemExpansionChanged(bIsExpandable, bIsExpanded);
 		}
 	}
 }

@@ -7,6 +7,7 @@
 #include "FrontendSettings/FrontendGameUserSettings.h"
 #include "Internationalization/Culture.h"
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Bool.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Category.h"
@@ -262,15 +263,27 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		
 		// Test Object
 		{
-			UListDataObject_Rotator* TestItem = NewObject<UListDataObject_Rotator>();
+			UListDataObject_Bool* TestBool = NewObject<UListDataObject_Bool>();
 			
-			TestItem->SetDataID(FName("TestItem"));
-			TestItem->SetDataDisplayName(FText::FromString(TEXT("Test Item")));
+			TestBool->SetDataID(FName("TestBool"));
+			TestBool->SetDataDisplayName(FText::FromString(TEXT("Test Bool")));
 			
-			TestItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
-			TestItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+			TestBool->SetDefaultBoolValue(false);
 			
-			VolumeCategory->AddChildListData(TestItem);
+			VolumeCategory->AddChildListData(TestBool);
+			
+			// Test Object
+			{
+				UListDataObject_Rotator* SubItem = NewObject<UListDataObject_Rotator>();
+			
+				SubItem->SetDataID(FName("SubItem"));
+				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));
+			
+				SubItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
+				SubItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+				
+				TestBool->AddChildListData(SubItem);
+			}
 		}
 		
 		/*** Teste Sub Category ***/
@@ -295,22 +308,6 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 				SubCategory->AddChildListData(SubItem);
 			}
-			
-			// Test Object
-			{
-				UListDataObject_Rotator* SubItem2 = NewObject<UListDataObject_Rotator>();
-			
-				SubItem2->SetDataID(FName("SubItem2"));
-				SubItem2->SetDataDisplayName(FText::FromString(TEXT("SubItem2")));
-			
-				SubItem2->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
-				SubItem2->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
-
-			
-				SubCategory->AddChildListData(SubItem2);
-			}
-		
-		
 		}
 	}
 	

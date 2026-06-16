@@ -85,7 +85,7 @@ public:
 	
 	// Retorna se o item pertence a uma subcategoria.
 	UFUNCTION(BlueprintPure)
-	bool IsSubCategoryItem() const;
+	bool IsSubItem() const;
 	
 	// Retorna o pai para uso em Blueprint.
 	UFUNCTION(BlueprintPure, DisplayName="GetParentData")

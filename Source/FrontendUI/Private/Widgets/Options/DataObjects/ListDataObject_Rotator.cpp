@@ -2,7 +2,6 @@
 
 #include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
-#include "FrontendDebugerHelper.h"
 
 void UListDataObject_Rotator::OnDataObjectInitialized()
 {
@@ -76,10 +75,10 @@ void UListDataObject_Rotator::AdvanceToNextOption()
 	{
 		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
 		DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-		// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-		NotifyListDataModified(this);
 	}
+	
+	// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
+	NotifyListDataModified(this);
 }
 
 // Retorna para a opção anterior da lista. Se estiver na primeira, vai para a última (loop).
@@ -91,7 +90,7 @@ void UListDataObject_Rotator::BackToPreviousOption()
 	// Descobre e armazena o índice atual na lista com base na string que está selecionada
 	const int32 CurrentDisplayIndex = AvailableOptionsStringArray.IndexOfByKey(CurrentStringValue);
 	
-	// Decrementa o índice em -1 para o qual queremos recuar
+	// Decrementa o índice em −1 para o qual queremos recuar
 	const int32 PreviousIndexToDisplay = CurrentDisplayIndex - 1;
 	
 	// Verifica se o índice decrementado existe dentro da lista
@@ -114,10 +113,10 @@ void UListDataObject_Rotator::BackToPreviousOption()
 	{
 		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
 		DataDynamicSetter->SetValueFromString(CurrentStringValue);
-		
-		// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
-		NotifyListDataModified(this);
 	}
+	
+	// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
+	NotifyListDataModified(this);
 }
 
 void UListDataObject_Rotator::OnRotatorInitiatedValueChange(const FText& InNewSelectedText)

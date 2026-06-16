@@ -4,24 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
-#include "Widget_ListEntry_Carousel.generated.h"
+#include "Widget_ListEntry_Bool.generated.h"
 
+class UListDataObject_Bool;
 class UFrontendCommonCarousel;
-class UListDataObject_Carousel;
 class UFrontendCommonButtonBase;
 
 /**
-* UWidget_ListEntry_Carousel
-*
-* Entry visual para opções do tipo Carousel dentro da ListView.
-* Exibe a opção atual no Rotator e permite navegar entre os valores
-* usando os botões anterior/próximo ou o próprio Rotator.
-*/
-UCLASS(Abstract, BlueprintType, meta=(DisableNaiveTick))
-class FRONTENDUI_API UWidget_ListEntry_Carousel : public UWidget_ListEntry_Base
+ * UWidget_ListEntry_Bool
+ *
+ * Entry visual para opções do tipo Bool dentro da ListView.
+ * Permite alternar entre true/false.
+ */
+UCLASS()
+class FRONTENDUI_API UWidget_ListEntry_Bool : public UWidget_ListEntry_Base
 {
 	GENERATED_BODY()
-
+	
 protected:
 	//~ Begin UUserWidget Interface
 	// Faz os binds iniciais dos botões e do Rotator quando a entry é criada.
@@ -37,6 +36,9 @@ protected:
 		EOptionsListDataModifyReason ModifyReason) override;
 	//~ End UWidget_ListEntry_Base Interface
 	
+	// Atualiza o estado de expansão da categoria.
+	virtual void NativeOnItemExpansionChanged(bool bIsExpanded) override;
+	
 private:
 	// ----------------------------------------------------------
 	// Handlers
@@ -49,8 +51,8 @@ private:
 	void OnNextClicked() const;
 	
 	// Notifica o DataObject com o novo valor selecionado após rotação do Carousel.
-	void OnCarouselRotated(int32 SelectedIndex, bool bFromNavigation) const;
-
+	void OnCarouselRotated(int32 NewIndex, bool bFromNavigation) const;
+	
 	// ----------------------------------------------------------
 	// Bound Widgets
 	// ----------------------------------------------------------
@@ -60,10 +62,10 @@ private:
 	UFrontendCommonButtonBase* CommonButton_PreviousOption;
 	
 	// Carousel animado que exibe as opções disponíveis e suporta navegação com loop. (Classe customizada)
-	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
-	UFrontendCommonCarousel* CommonCarousel_AvailableOptions;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))	
+	UFrontendCommonCarousel* CommonCarousel_BoolOptions;
 	
-    // Botão usado para avançar uma opção no carrossel.
+	// Botão usado para avançar uma opção no carrossel.
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
 	UFrontendCommonButtonBase* CommonButton_NextOption;
 	
@@ -71,7 +73,7 @@ private:
 	// Runtime Data
 	// ----------------------------------------------------------
 	
-	// Cache do DataObject de carrossel associado a esta entry.
+	// Cache do DataObject de Bool associado a esta entry.
 	UPROPERTY(Transient)
-	UListDataObject_Carousel* CachedOwningCarouselDataObject;
+	UListDataObject_Bool* CachedOwningBoolDataObject;
 };

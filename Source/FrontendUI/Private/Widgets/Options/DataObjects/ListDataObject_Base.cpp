@@ -4,6 +4,7 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 
 #include "FrontendSettings/FrontendGameUserSettings.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Bool.h"
 #include "Widgets/Options/DataObjects/ListDataObject_SubCategory.h"
 #include "Widgets/Options/DataObjects/ListDataObject_TabCollection.h"
 
@@ -81,8 +82,11 @@ bool UListDataObject_Base::IsLastChild() const
 	return Siblings.Last() == this;
 }
 
-bool UListDataObject_Base::IsSubCategoryItem() const
+bool UListDataObject_Base::IsSubItem() const
 {
+	const bool bIsSubCategoryItem = ParentData->IsA<UListDataObject_SubCategory>();
+	const bool bIsBoolChild = ParentData->IsA<UListDataObject_Bool>();
+	
 	// Retorna se o pai for uma subcategoria.
-	return ParentData && ParentData->IsA<UListDataObject_SubCategory>();
+	return ParentData && bIsSubCategoryItem || bIsBoolChild;
 }
