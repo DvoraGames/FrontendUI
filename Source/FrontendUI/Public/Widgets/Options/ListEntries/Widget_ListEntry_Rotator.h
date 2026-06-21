@@ -6,7 +6,7 @@
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 #include "Widget_ListEntry_Rotator.generated.h"
 
-class UListDataObject_Rotator;
+class UListDataObject_StringRotator;
 class UFrontendCommonRotator;
 class UFrontendCommonButtonBase;
 
@@ -69,5 +69,5 @@ private:
 	
 	// Cache do DataObject de carrossel associado a esta entry.
 	UPROPERTY(Transient)
-	UListDataObject_Rotator* CachedOwningRotatorDataObject;
+	UListDataObject_StringRotator* CachedOwningRotatorDataObject;
 };

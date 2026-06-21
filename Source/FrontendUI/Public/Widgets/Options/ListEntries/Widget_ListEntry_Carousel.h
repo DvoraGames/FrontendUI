@@ -6,8 +6,8 @@
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 #include "Widget_ListEntry_Carousel.generated.h"
 
+class UListDataObject_StringCarousel;
 class UFrontendCommonCarousel;
-class UListDataObject_Carousel;
 class UFrontendCommonButtonBase;
 
 /**
@@ -73,5 +73,5 @@ private:
 	
 	// Cache do DataObject de carrossel associado a esta entry.
 	UPROPERTY(Transient)
-	UListDataObject_Carousel* CachedOwningCarouselDataObject;
+	UListDataObject_StringCarousel* CachedOwningCarouselDataObject;
 };

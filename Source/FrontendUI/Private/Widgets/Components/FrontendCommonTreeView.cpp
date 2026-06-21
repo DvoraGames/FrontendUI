@@ -8,16 +8,16 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
-bool UFrontendCommonTreeView::OnIsSelectableOrNavigableInternal(UObject* SelectedItem)
+bool UFrontendCommonTreeView::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
 {
-	// Converte o item selecionada para o item base.
-	const UListDataObject_Base* SelectedEntryData = Cast<UListDataObject_Base>(SelectedItem);
-	
-	// Aborta se o item for inválido.
-	if (!SelectedEntryData) return false;
+	// Rejeita itens inválidos.
+	if (!FirstSelectedItem) return false;
+
+	// Converte para o tipo esperado.
+	const UListDataObject_Base* SelectedItem = Cast<UListDataObject_Base>(FirstSelectedItem);
 	
 	// Retorna se o item pode ser selecionado.
-	return SelectedEntryData->GetIsSelectable();
+	return SelectedItem->IsSelectable();
 }
 
 UUserWidget& UFrontendCommonTreeView::OnGenerateEntryWidgetInternal(UObject* Item,

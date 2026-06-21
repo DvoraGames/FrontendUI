@@ -9,9 +9,10 @@
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Bool.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Category.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
+#include "Widgets/Options/DataObjects/ListDataObject_StringCarousel.h"
+#include "Widgets/Options/DataObjects/ListDataObject_StringRotator.h"
 #include "Widgets/Options/DataObjects/ListDataObject_SubCategory.h"
 #include "Widgets/Options/DataObjects/ListDataObject_TabCollection.h"
 
@@ -108,7 +109,7 @@ TArray<UListDataObject_Base*> UOptionsDataRegistry::GetTreeRootItemsBySelectedTa
 }
 
 void UOptionsDataRegistry::FindChildren(UListDataObject_Base* InParentData,
-                                                        TArray<UListDataObject_Base*>& OutFoundChildListData) const
+                                                        TArray<UListDataObject_Base*>& OutFoundChildListData)
 {
 	// Aborta se o item pai for inválido ou não tiver filhos.
 	if (!InParentData || !InParentData->Implements<UIListDataWithChildren>()) return ;
@@ -155,7 +156,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 	/*** Game Difficulty Option ***/
 	{
 		// Cria a opção de dificuldade do tipo carrossel (várias opções navegáveis)
-		UListDataObject_Carousel* GameDifficulty = NewObject<UListDataObject_Carousel>();
+		UListDataObject_StringCarousel* GameDifficulty = NewObject<UListDataObject_StringCarousel>();
 		
 		// Define o ID do DataObject Difficulty
 		GameDifficulty->SetDataID(FName("GameDifficulty"));
@@ -189,7 +190,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 	/*** Game Language Option ***/
 	{
 		// Cria a opção de idioma do tipo carrossel (várias opções navegáveis)
-		UListDataObject_Carousel* GameLanguage = NewObject<UListDataObject_Carousel>();
+		UListDataObject_StringCarousel* GameLanguage = NewObject<UListDataObject_StringCarousel>();
 		
 		// Define o ID do DataObject Language
 		GameLanguage->SetDataID(FName("GameLanguage"));
@@ -274,7 +275,7 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			// Test Object
 			{
-				UListDataObject_Rotator* SubItem = NewObject<UListDataObject_Rotator>();
+				UListDataObject_StringRotator* SubItem = NewObject<UListDataObject_StringRotator>();
 			
 				SubItem->SetDataID(FName("SubItem"));
 				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));
@@ -297,7 +298,7 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		
 			// Test Object
 			{
-				UListDataObject_Rotator* SubItem = NewObject<UListDataObject_Rotator>();
+				UListDataObject_StringRotator* SubItem = NewObject<UListDataObject_StringRotator>();
 			
 				SubItem->SetDataID(FName("SubItem"));
 				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));

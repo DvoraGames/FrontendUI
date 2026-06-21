@@ -7,7 +7,7 @@
 #include "Widgets/Components/FrontendCommonButtonBase.h"
 #include "Widgets/Components/FrontendCommonRotator.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
+#include "Widgets/Options/DataObjects/ListDataObject_StringRotator.h"
 
 void UWidget_ListEntry_Rotator::NativeOnInitialized()
 {
@@ -36,7 +36,7 @@ void UWidget_ListEntry_Rotator::OnOwningListDataObjectSet(UListDataObject_Base* 
 	Super::OnOwningListDataObjectSet(InOwningListDataObject);
 	
 	// Faz o cast para o tipo específico de carrossel e guarda em cache para uso nos cliques e atualizações
-	CachedOwningRotatorDataObject = CastChecked<UListDataObject_Rotator>(InOwningListDataObject);
+	CachedOwningRotatorDataObject = CastChecked<UListDataObject_StringRotator>(InOwningListDataObject);
 	
 	// Popula o Rotator com todos os textos disponíveis configurados no DataObject
 	CommonRotator_AvailableOptions->PopulateTextLabels(CachedOwningRotatorDataObject->GetAvailableOptionsTextArray());

@@ -16,6 +16,10 @@ class FRONTENDUI_API UListDataObject_SubCategory : public UListDataObject_Catego
 {
 	GENERATED_BODY()
 	
+public:
+	// Sobrescreve e retorna se este item pode ser selecionado na lista.
+	virtual bool IsSelectable() const override { return true; }
+	
 protected:
 	// Executa a inicialização específica da sub categoria.
 	virtual void OnDataObjectInitialized() override;

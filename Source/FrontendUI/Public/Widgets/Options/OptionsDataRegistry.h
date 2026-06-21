@@ -40,7 +40,7 @@ public:
 	
 private:
 	// Busca recursivamente todos os filhos do item pai informado e adiciona os itens encontrados no array de saída.
-	void FindChildren(UListDataObject_Base* InParentData, TArray<UListDataObject_Base*>& OutFoundChildListData) const;
+	static void FindChildren(UListDataObject_Base* InParentData, TArray<UListDataObject_Base*>& OutFoundChildListData);
 	
 	// Cria e registra a aba Gameplay com suas opções
 	void InitGamePlayCollectionTab();

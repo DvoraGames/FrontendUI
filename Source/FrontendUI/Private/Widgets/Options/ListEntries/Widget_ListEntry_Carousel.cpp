@@ -6,7 +6,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Widgets/Components/FrontendCommonButtonBase.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Carousel.h"
+#include "Widgets/Options/DataObjects/ListDataObject_StringCarousel.h"
 #include "Widgets/Components/FrontendCommonCarousel.h"
 
 void UWidget_ListEntry_Carousel::NativeOnInitialized()
@@ -25,7 +25,7 @@ void UWidget_ListEntry_Carousel::OnOwningListDataObjectSet(UListDataObject_Base*
 	Super::OnOwningListDataObjectSet(InOwningListDataObject);
 	
 	// Faz o cast para o tipo específico de carrossel e guarda em cache para uso nos cliques e atualizações
-	CachedOwningCarouselDataObject = CastChecked<UListDataObject_Carousel>(InOwningListDataObject);
+	CachedOwningCarouselDataObject = CastChecked<UListDataObject_StringCarousel>(InOwningListDataObject);
 	
 	// Popula o Carousel com as opções disponíveis (Classe customizada)
 	CommonCarousel_AvailableOptions->PopulateCarouselLabels(CachedOwningCarouselDataObject->GetAvailableOptionsTextArray());

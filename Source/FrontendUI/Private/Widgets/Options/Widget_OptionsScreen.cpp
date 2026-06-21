@@ -217,12 +217,16 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 		// Define os itens da árvore e solicita a atualização visual.
 		CommonTreeView_OptionsList->SetTreeViewItems(FoundRootItems);
 		CommonTreeView_OptionsList->RequestRefresh();
-			
-		// Seleciona o primeiro item disponível da árvore.
+		
+		
+		// Seleciona o primeiro item selecionável disponível na árvore.
 		if (CommonTreeView_OptionsList->GetListItems().Num() != 0)
 		{
-			CommonTreeView_OptionsList->NavigateToIndex(0);
-			CommonTreeView_OptionsList->SetSelectedIndex(0);
+			// Busca o primeiro item selecional na hierarquia.
+			UListDataObject_Base* FirstItemToSelect = FindFirstSelectableItem(CommonTreeView_OptionsList->GetListItems());
+			
+			CommonTreeView_OptionsList->SetSelectedItem(FirstItemToSelect);
+			CommonTreeView_OptionsList->RequestNavigateToItem(FirstItemToSelect);
 		}
 	}
 	
@@ -271,7 +275,6 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 		}
 	}
 }
-
 
 void UWidget_OptionsScreen::OnListItemHovered(UObject* InHoveredItem, bool bIsHovered) const
 {
@@ -413,5 +416,39 @@ void UWidget_OptionsScreen::HandleGetItemChildren(UObject* InItem, TArray<UObjec
 		// Entrega o filho ao TreeView.
 		OutChildren.Add(ChildData);
 	}
-	
+}
+
+UListDataObject_Base* UWidget_OptionsScreen::FindFirstSelectableItem(const TArray<UObject*>& Items)
+{
+	// Percorre cada item do array
+	for (UObject* Item : Items)
+	{
+		// Tenta converter o item em um ListDataObject_Base
+		UListDataObject_Base* DataObject = Cast<UListDataObject_Base>(Item);
+		
+		// Ignora se o DataObject for inválido.
+		if (!DataObject) continue;
+		
+		// Retorna o DataObject imediatamente se o mesmo for selecionável.
+		if (DataObject->IsSelectable()) return DataObject;
+		
+		// Busca nos filhos se o item for uma coleção.
+		if (DataObject->HasAnyChildListData())
+		{
+			// Obtém os filhos do item atual.
+			TArray<UListDataObject_Base*> Children = DataObject->GetAllChildListData();
+			
+			// Converte para TArray<UObject*> para compatibilidade com a função.
+			TArray<UObject*> ChildObjects(Children);
+			
+			// Retorna o primeiro selecionável encontrado nos filhos.
+			if (UListDataObject_Base* Found = FindFirstSelectableItem(ChildObjects))
+			{
+				return Found;
+			}
+		}
+	}
+
+	// Retorna null se nenhum item selecionável for encontrado.
+	return nullptr;
 }

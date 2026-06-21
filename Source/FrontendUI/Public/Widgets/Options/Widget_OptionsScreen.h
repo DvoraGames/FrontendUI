@@ -46,6 +46,9 @@ protected:
 	virtual UWidget* NativeGetDesiredFocusTarget() const override;
 	//~ End UCommonActivatableWidget Interface
 	
+	// Busca e Retorna o primeiro DataObject selecionável da aba atual.
+	static UListDataObject_Base* FindFirstSelectableItem(const TArray<UObject*>& Items);
+	
 private:
 	// Retorna o registry de opções, criando-o na primeira chamada.
 	UOptionsDataRegistry* GetOrCreateDataRegistry();

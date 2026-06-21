@@ -47,7 +47,6 @@ public:
 	LIST_DATA_ACCESSOR(FText, DisabledRichText)
 	LIST_DATA_ACCESSOR(TSoftObjectPtr<UTexture2D>, SoftDescriptionImage)
 	LIST_DATA_ACCESSOR(UListDataObject_Base*, ParentData)
-	LIST_DATA_ACCESSOR(bool, IsSelectable)
 	
 	// Inicializa o DataObject.
 	void InitDataObject();
@@ -71,6 +70,9 @@ public:
 	// Retorna a tentativa de resetar o item para o valor padrão.
 	virtual bool TryResetBackToDefaultValue() { return false; }
 	
+	// Retorna se este item pode ser selecionado na lista.
+	virtual bool IsSelectable() const { return true; }
+	
 	// Retorna a profundidade do item na hierarquia.
 	UFUNCTION(BlueprintPure)
 	int32 GetEntryHierarchyDepth() const;
@@ -90,7 +92,7 @@ public:
 	// Retorna o pai para uso em Blueprint.
 	UFUNCTION(BlueprintPure, DisplayName="GetParentData")
 	UListDataObject_Base* BP_GetParentData() const { return ParentData; }
-	
+
 protected:	
 	// Override em subclasses para implementar lógica específica de inicialização - ex: carregar save, criar filhos.
 	virtual void OnDataObjectInitialized();
@@ -110,7 +112,6 @@ private:
 	FText DescriptionRichText;							// Descrição com suporte a RichText
 	FText DisabledRichText;								// Texto exibido quando a opção está desabilitada
 	TSoftObjectPtr<UTexture2D> SoftDescriptionImage;	// Imagem descritiva - carregada sob demanda (lazy)
-	bool IsSelectable = true;							// Define se o item pode ser selecionado.
 	
 	// Armazena ar eferência ao pai hierárquico do item - não serializada, reconstruída em runtime.
 	UPROPERTY(Transient)
