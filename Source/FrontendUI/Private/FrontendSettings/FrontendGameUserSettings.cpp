@@ -3,6 +3,14 @@
 
 #include "FrontendSettings/FrontendGameUserSettings.h"
 
+UFrontendGameUserSettings::UFrontendGameUserSettings()
+: MasterVolume(1.f)
+, MusicVolume(1.f)
+, SFXVolume(1.f)
+{
+	
+}
+
 void UFrontendGameUserSettings::ApplySettings(bool bCheckForCommandLineOverrides)
 {
 	Super::ApplySettings(bCheckForCommandLineOverrides);
@@ -37,4 +45,28 @@ void UFrontendGameUserSettings::SetCurrentGameLanguage(const FString& InNewLangu
 	
 	// Aplica o idioma imediatamente, trocando a cultura ativa (idioma e formatação)
 	FInternationalization::Get().SetCurrentCulture(CurrentGameLanguage);
+}
+
+void UFrontendGameUserSettings::SetCurrentMasterVolume(const float InNewVolume)
+{
+	// Atualiza o volume master.
+	MasterVolume = InNewVolume;
+	
+	// TODO: Aplicar o volume no jogo
+}
+
+void UFrontendGameUserSettings::SetCurrentMusicVolume(const float InNewVolume)
+{
+	// Atualiza o volume de música.
+	MusicVolume = InNewVolume;
+	
+	// TODO: Aplicar o volume no jogo
+}
+
+void UFrontendGameUserSettings::SetCurrentSFXVolume(const float InNewVolume)
+{
+	// Atualiza o volume de efeitos sonoros.
+	SFXVolume = InNewVolume;
+	
+	// TODO: Aplicar o volume no jogo
 }

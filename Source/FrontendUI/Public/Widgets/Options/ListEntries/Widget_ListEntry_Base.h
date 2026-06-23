@@ -27,7 +27,7 @@ class FRONTENDUI_API UWidget_ListEntry_Base : public UCommonUserWidget, public I
 	
 public:
 	// Evento Blueprint disparado quando o hover do item muda.
-	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "On Item Hovered"))
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "On Entry Widget Hovered"))
 	void BP_OnItemHovered(bool bIsHovered, bool bIsEntryWidgetStillSelected);
 	
 	// Repassa o estado de hover para o Blueprint.

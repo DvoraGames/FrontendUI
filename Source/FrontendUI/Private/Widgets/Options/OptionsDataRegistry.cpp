@@ -11,6 +11,7 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Category.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Scalar.h"
 #include "Widgets/Options/DataObjects/ListDataObject_StringCarousel.h"
 #include "Widgets/Options/DataObjects/ListDataObject_StringRotator.h"
 #include "Widgets/Options/DataObjects/ListDataObject_SubCategory.h"
@@ -261,6 +262,77 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		VolumeCategory->SetDataDisplayName(FText::FromString(TEXT("Volume")));
 		
 		AudioTabCollection->AddChildListData(VolumeCategory);
+		
+		// Master Volume Entry
+		{
+			UListDataObject_Scalar* MasterVolume = NewObject<UListDataObject_Scalar>();
+			MasterVolume->SetDataID(FName("MasterVolume"));
+			MasterVolume->SetDataDisplayName(FText::FromString(TEXT("Master Volume")));
+			MasterVolume->SetDescriptionRichText(FText::FromString(TEXT("Master Volume Description")));
+			
+			MasterVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
+			MasterVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
+			MasterVolume->SetSliderStepSize(.01f);
+			MasterVolume->SetDefaultValueFromString(LexToString(.5f));
+			
+			MasterVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
+			MasterVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
+			
+			MasterVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentMasterVolume));
+			MasterVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentMasterVolume));
+			
+			MasterVolume->SetShouldApplySettingsImmediately(true);
+			
+			VolumeCategory->AddChildListData(MasterVolume);
+		}
+		
+		// Music Volume Entry
+		{
+			UListDataObject_Scalar* MusicVolume = NewObject<UListDataObject_Scalar>();
+			MusicVolume->SetDataID(FName("MusicVolume"));
+			MusicVolume->SetDataDisplayName(FText::FromString(TEXT("Music Volume")));
+			MusicVolume->SetDescriptionRichText(FText::FromString(TEXT("Music Volume Description")));
+			
+			MusicVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
+			MusicVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
+			MusicVolume->SetSliderStepSize(.01f);
+			
+			MusicVolume->SetDefaultValueFromString(LexToString(1.f));
+			
+			MusicVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
+			MusicVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
+			
+			MusicVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentMusicVolume));
+			MusicVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentMusicVolume));
+			
+			MusicVolume->SetShouldApplySettingsImmediately(true);
+			
+			VolumeCategory->AddChildListData(MusicVolume);
+		}
+		
+		// SFX Volume Entry
+		{
+			UListDataObject_Scalar* SFXVolume = NewObject<UListDataObject_Scalar>();
+			SFXVolume->SetDataID(FName("SFXVolume"));
+			SFXVolume->SetDataDisplayName(FText::FromString(TEXT("SFX Volume")));
+			SFXVolume->SetDescriptionRichText(FText::FromString(TEXT("SFX Volume Description")));
+			
+			SFXVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
+			SFXVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
+			SFXVolume->SetSliderStepSize(.01f);
+			
+			SFXVolume->SetDefaultValueFromString(LexToString(1.f));
+			
+			SFXVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
+			SFXVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
+			
+			SFXVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentSFXVolume));
+			SFXVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentSFXVolume));
+			
+			SFXVolume->SetShouldApplySettingsImmediately(true);
+			
+			VolumeCategory->AddChildListData(SFXVolume);
+		}
 		
 		// Test Object
 		{

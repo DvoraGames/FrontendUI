@@ -19,13 +19,15 @@ class FRONTENDUI_API UFrontendGameUserSettings : public UGameUserSettings
 	GENERATED_BODY()
 	
 public:
+	UFrontendGameUserSettings();
+	
 	//~ Begin UMovieGraphGlobalGameOverridesNode Interface
-	//  Sobrescreve ApplySettings para aplicar também configurações customizadas além das padrões da Engine.
+	// Aplica as configurações da Engine e as configurações customizadas.
 	virtual void ApplySettings(bool bCheckForCommandLineOverrides) override;
 	//~ End UMovieGraphGlobalGameOverridesNode Interface
-
+	
 	/* Retorna a instância global e ativa das configurações do jogo.
-	 * Facilita o acesso sem precisar chamar GEngine e fazer cast toda vez. */
+	 * Evita acessar GEngine e fazer cast manualmente. */
 	static UFrontendGameUserSettings* Get();
 	
 	// Retorna a instância global para uso em Blueprints.
@@ -33,32 +35,68 @@ public:
 	static UFrontendGameUserSettings* GetFrontendGameUserSettings();
 
 	// ----------------------------------------------------------
-	// Gameplay Collection Tab
+	// Gameplay Collection Properties Getters/Setters
 	// ----------------------------------------------------------
 	
 	/*** Difficulty ***/
 	
-	// Retorna a dificuldade atual do jogo salva nas configurações.
+	// Retorna a dificuldade atual salva nas configurações.
 	UFUNCTION()
 	FString GetCurrentGameDifficulty() const { return CurrentGameDifficulty; }
 	
-	// Define uma nova dificuldade. Para salvar no disco, chame ApplySettings().
+	// Define uma nova dificuldade.
 	UFUNCTION()
 	void SetCurrentGameDifficulty(const FString& InNewDifficulty) { CurrentGameDifficulty = InNewDifficulty; }
 	
 	/*** Language ***/
 	
-	// Retorna o idioma atual do jogo salvo nas configurações.
+	// Retorna o idioma atual salvo nas configurações.
 	UFUNCTION()
 	FString GetCurrentGameLanguage() const { return CurrentGameLanguage; }
 	
-	/* Define um novo idioma e o aplica imediatamente via FInternationalization.
-	 * O valor será salvo no .ini na próxima chamada de ApplySettings(). */
+	// Define um novo idioma.
 	UFUNCTION()
 	void SetCurrentGameLanguage(const FString& InNewLanguage);
-
+	
+	// ----------------------------------------------------------
+	// Audio Collection Properties Getters/Setters
+	// ----------------------------------------------------------
+	
+	/*** Master Volume ***/
+	
+	// Retorna o volume master atual salvo nas configurações.
+	UFUNCTION()
+	float GetCurrentMasterVolume() const { return MasterVolume; }
+	
+	// Define um novo volume master.
+	UFUNCTION()
+	void SetCurrentMasterVolume(const float InNewVolume);
+	
+	/*** Music Volume ***/
+	
+	// Retorna o volume de música atual nas configurações.
+	UFUNCTION()
+	float GetCurrentMusicVolume() const { return MusicVolume; }
+	
+	// Define um novo volume de música.
+	UFUNCTION()
+	void SetCurrentMusicVolume(const float InNewVolume);
+	
+	/*** SFX Volume ***/
+	
+	// Retorna o volume atual dos efeitos sonoros nas configurações.	
+	UFUNCTION()
+	float GetCurrentSFXVolume() const { return SFXVolume; }
+	
+	// Define um novo volume para os efeitos sonoros.
+	UFUNCTION()
+	void SetCurrentSFXVolume(const float InNewVolume);
 	
 private:
+	// ----------------------------------------------------------
+	// Gameplay Collection Properties
+	// ----------------------------------------------------------
+	
 	// Armazena a dificuldade atual - lida/escrita automaticamente no GameUserSettings.ini via Config.
 	UPROPERTY(Config)
 	FString CurrentGameDifficulty;
@@ -66,5 +104,21 @@ private:
 	// Armazena o idioma atual - lido/escrito automaticamente no GameUserSettings.ini via Config.
 	UPROPERTY(Config)
 	FString CurrentGameLanguage;
+	
+	// ----------------------------------------------------------
+	// Audio Collection Properties
+	// ----------------------------------------------------------
+	
+	// Volume master salvo no GameUserSettings.ini.
+	UPROPERTY(Config)
+	float MasterVolume;
+	
+	// Volume de música salvo no GameUserSettings.ini.
+	UPROPERTY(Config)
+	float MusicVolume;
+	
+	// Volume de efeitos salvo no GameUserSettings.ini.
+	UPROPERTY(Config)
+	float SFXVolume;
 	
 };
