@@ -8,6 +8,9 @@
 #include "FrontendTypes/FrontendEnumTypes.h"
 #include "Widget_ListEntry_Base.generated.h"
 
+class UWidget_ToggleAction;
+class UInputAction;
+class UToggleActionButton;
 class UWidget_EntryRow;
 class UListDataObject_Base;
 class UCommonTextBlock;
@@ -44,9 +47,15 @@ protected:
 	
 	// Limpa o estado visual quando a lista libera a entry.
 	virtual void NativeOnEntryReleased() override;
+	
+	// Reage à mudança de seleção do item, atualizando row e toggle action.
+	virtual void NativeOnItemSelectionChanged(bool bIsSelected) override;
 	//~ End IUserObjectListEntry Interface
 	
 	//~ Begin UUserWidget Interface
+	// Faz os binds iniciais dos botões e do Rotator quando a entry é criada.
+	virtual void NativeOnInitialized() override;
+	
 	// Redireciona o foco para um widget interno.
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 	
@@ -67,6 +76,9 @@ protected:
 	(ex: botões	de carrossel) e precisam se autosselecionar ao serem clicados. */
 	void SelectThisEntryWidget() const;
 	
+	// Sincroniza o estado expandido do item no DataObject e na TreeView.
+	void SyncTreeExpansion(UListDataObject_Base* InDataObject, const bool bNewExpansion) const;
+	
 	// Associa o DataObject dono desta entry.
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UListDataObject_Base* OwningListDataObject = nullptr;
@@ -75,6 +87,21 @@ private:
 	// Retorna a profundidade hierárquica do DataObject dono.
 	UFUNCTION(BlueprintPure, Category="Options")
 	int32 GetOwningDataHierarchyDepth() const;
+	
+	// Executa a ação de toggle associada ao DataObject desta entry.
+	void OnToggleActionClicked() const;
+	
+	// Atualiza apenas o estado ativo/inativo visual do botão de toggle.
+	void RefreshToggleActionVisual() const;
+	
+	// Atualiza visibilidade, estado e hint de input do toggle action completo.
+	void RefreshToggleActionPresentation() const;
+	
+	// Registra o input action de toggle enquanto esta entry estiver selecionada.
+	void RegisterToggleActionBinding();
+	
+	// Remove o binding do input action de toggle.
+	void UnregisterToggleActionBinding();
 	
 	// ----------------------------------------------------------
 	// Bound Widget
@@ -87,4 +114,19 @@ private:
 	// Widget auxiliar da row responsável por indentação e expansão visual.
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess = "true"))
 	UWidget_EntryRow* WBP_Entry_RowLayout;
+	
+	// Widget opcional que exibe o botão/hint de ação de toggle (Mute, Link, etc).
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess = "true"))
+	UWidget_ToggleAction* WBP_ToggleAction;
+	
+	// ----------------------------------------------------------
+	// Data and Input
+	// ----------------------------------------------------------
+	
+	// Input action usado para acionar o toggle via input dedicado (ex: botão do gamepad).
+	UPROPERTY(EditDefaultsOnly, Category="Frontend|Input")
+	UInputAction* ToggleInputAction;
+
+	// Handle do binding do input action de toggle, usado para registrar/remover.
+	FUIActionBindingHandle ToggleEntryActionHandle;
 };

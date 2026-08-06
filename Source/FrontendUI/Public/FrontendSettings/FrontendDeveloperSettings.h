@@ -52,4 +52,20 @@ public:
 			ForceInlineRow, // TMap aparece expandido - uma linha por entrada ao invés de collapsed
 			Categories = "Frontend.Image")) // Filtra GameplayTags apenas da categoria "Frontend.Image"
 	TMap<FGameplayTag, TSoftObjectPtr<UTexture2D>> OptionsScreenSoftImage;
+	
+	// Referência soft para a SoundClass mestre, usada pela opção de volume geral.
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowedClasses = "/Script/Engine.SoundClass"))
+	FSoftObjectPath MasterSoundClass;
+	
+	// Referência soft para a SoundClass de música, usada pela opção de volume de música.
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowedClasses = "/Script/Engine.SoundClass"))
+	FSoftObjectPath MusicSoundClass;
+	
+	// Referência soft para a SoundClass de efeitos sonoros (SFX).
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowedClasses = "/Script/Engine.SoundClass"))
+	FSoftObjectPath SFXSoundClass;
+	
+	// Referência soft para o SoundMix padrão aplicado no jogo.
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowedClasses = "/Script/Engine.SoundMix"))
+	FSoftObjectPath DefaultSoundMix;
 };

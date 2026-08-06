@@ -13,21 +13,21 @@ void UWidget_ListEntry_Rotator::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	
-	// Vincula o clique do botão esquerdo para pedir ao DataObject voltar uma opção
+	// Vincula o clique do botão esquerdo para voltar uma opção.
 	CommonButton_PreviousOption->OnClicked().AddUObject(this, &ThisClass::OnPreviousClicked);
 	
-	// Vincula o clique do botão direito para pedir ao DataObject avançar uma opção
+	// Vincula o clique do botão direito para avançar uma opção.
 	CommonButton_NextOption->OnClicked().AddUObject(this, &ThisClass::OnNextClicked);
 	
-	// Ao clicar no Rotator, esta própria linha vira o item selecionado da ListView
+	// Faz a entry ser selecionada quando o Rotator for clicado.
 	CommonRotator_AvailableOptions->OnClicked().AddLambda(
 		[this]()
 		{
-			// Seleciona a propria entry
+			// Seleciona a propria entry na ListView
 			SelectThisEntryWidget();
 		});
 	
-	// Vincula o evento disparado quando o Rotator troca de opção
+	// Vincula o evento disparado quando o Rotator muda de valor.
 	CommonRotator_AvailableOptions->OnRotatedEvent.AddUObject(this, &ThisClass::OnRotatorValueChanged);
 }
 
@@ -35,70 +35,73 @@ void UWidget_ListEntry_Rotator::OnOwningListDataObjectSet(UListDataObject_Base* 
 {
 	Super::OnOwningListDataObjectSet(InOwningListDataObject);
 	
-	// Faz o cast para o tipo específico de carrossel e guarda em cache para uso nos cliques e atualizações
+	// Faz o cast para o DataObject do tipo Rotator e armazena em cache.
 	CachedOwningRotatorDataObject = CastChecked<UListDataObject_StringRotator>(InOwningListDataObject);
 	
-	// Popula o Rotator com todos os textos disponíveis configurados no DataObject
+	// Popula o Rotator com todos os textos disponíveis configurados no DataObject.
 	CommonRotator_AvailableOptions->PopulateTextLabels(CachedOwningRotatorDataObject->GetAvailableOptionsTextArray());
 	
-	// Ajusta o Rotator para mostrar o texto atualmente selecionado no DataObject
+	// Sincroniza o texto atual exibido no Rotator.
 	CommonRotator_AvailableOptions->SetSelectedOptionByText(CachedOwningRotatorDataObject->GetCurrentDisplayText());
+	
+	// Aplica o modo de navegação configurado nesta entry.
+	CachedOwningRotatorDataObject->SetNavigationMode(NavigationMode);
 }
 
 void UWidget_ListEntry_Rotator::OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData,
-	EOptionsListDataModifyReason ModifyReason)
+	const EOptionsListDataModifyReason ModifyReason)
 {
 	Super::OnOwningListDataObjectModified(OwningModifiedData, ModifyReason);
 	
-	// Se o DataObject desta entry estiver válido
+	// Atualiza o Rotator se o DataObject em cache estiver válido.
 	if (CachedOwningRotatorDataObject)
 	{
-		// Atualiza o rotator com o texto atual
+		// Sincroniza o texto atual no widget.
 		CommonRotator_AvailableOptions->SetSelectedOptionByText(CachedOwningRotatorDataObject->GetCurrentDisplayText());
 	}
 }
 
 void UWidget_ListEntry_Rotator::OnPreviousClicked() const
 {
-	// Se o DataObject desta entry estiver válido
+	// Volta para a opção anterior se o DataObject estiver válido.
 	if (CachedOwningRotatorDataObject)
 	{
-		// Pede ao DataObject voltar para a opção anterior do carrossel
+		// Navegar para a opção anterior no DataObject do Rotator.
 		CachedOwningRotatorDataObject->BackToPreviousOption();
 	}
 	
-	// Garante que esta linha continue/torne-se a selecionada na ListView após o clique
+	// Mantém esta entry selecionada na ListView após o clique.
 	SelectThisEntryWidget();
 }
 
 void UWidget_ListEntry_Rotator::OnNextClicked() const
 {
-	// Se o DataObject desta entry estiver válido
+	// Avança para a próxima opção se o DataObject estiver válido.
 	if (CachedOwningRotatorDataObject)
 	{
-		// Navega para a próxima opção no DataObject (a UI será atualizada via modificação do DataObject)
+		// Navegar para a próxima opção no DataObject do Rotator.
 		CachedOwningRotatorDataObject->AdvanceToNextOption();
 	}
 	
-	// Garante que esta linha continue/torne-se a selecionada na ListView após o clique
+	// Mantém esta entry selecionada na ListView após o clique.
 	SelectThisEntryWidget();
 }
 
 void UWidget_ListEntry_Rotator::OnRotatorValueChanged(int32 Value, bool bUserInitiated) const
 {
-	// Aborta se não houver DataObject em cache
+	// Aborta se não houver DataObject em cache.
 	if (!CachedOwningRotatorDataObject) return;
 	
-	// Obtém o subsistema de input para descobrir de onde veio a mudança do Rotator
+	// Obtém o subsistema de input atual.
 	UCommonInputSubsystem* CommonInputSubsystem = GetInputSubsystem();
 	
-	// Ignora mudanças que não vieram do usuário ou quando o subsistema não estiver disponível
+	// Ignora mudanças não iniciadas pelo usuário ou sem subsistema válido.
 	if (!CommonInputSubsystem || !bUserInitiated) return;
 	
-	// Só propaga a mudança para o DataObject quando a navegação veio do Gamepad
+	// Só propaga a mudança quando a entrada vier do gamepad.
 	if (CommonInputSubsystem->GetCurrentInputType() == ECommonInputType::Gamepad)
 	{
-		// Envia ao DataObject o texto atualmente selecionado no Rotator
+		// Envia ao DataObject o texto atualmente selecionado no Rotator.
 		CachedOwningRotatorDataObject->OnRotatorInitiatedValueChange(CommonRotator_AvailableOptions->GetSelectedText());
 	}
 }

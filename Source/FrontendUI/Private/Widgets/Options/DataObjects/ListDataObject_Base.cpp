@@ -4,7 +4,6 @@
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
 
 #include "FrontendSettings/FrontendGameUserSettings.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Bool.h"
 #include "Widgets/Options/DataObjects/ListDataObject_SubCategory.h"
 #include "Widgets/Options/DataObjects/ListDataObject_TabCollection.h"
 
@@ -20,7 +19,7 @@ void UListDataObject_Base::OnDataObjectInitialized()
 }
 
 void UListDataObject_Base::NotifyListDataModified(UListDataObject_Base* ModifiedData,
-	EOptionsListDataModifyReason ModifyReason)
+	const EOptionsListDataModifyReason ModifyReason)
 {
 	// Notifica os listeners sobre a alteração.
 	OnListDataModified.Broadcast(ModifiedData, ModifyReason);
@@ -31,6 +30,37 @@ void UListDataObject_Base::NotifyListDataModified(UListDataObject_Base* Modified
 		// Força o GameUserSettings a aplicar e salvar imediatamente
 		UFrontendGameUserSettings::Get()->ApplySettings(true);
 	}
+}
+
+//** ----------------------------------
+//** Children Manager
+//** ----------------------------------
+
+void UListDataObject_Base::AddChildListData(UListDataObject_Base* InChildListData)
+{
+	// Aborta se o filho for inválido.
+	if (!InChildListData) return;
+	
+	// Define esta coleção como pai do filho.
+	InChildListData->SetParentData(this);
+	
+    // Armazena a opção filha na coleção interna desta entry.
+	ChildListDataArray.Add(InChildListData);
+	
+	// Inicializa o DataObject filho.
+	InChildListData->InitDataObject();
+}
+
+TArray<UListDataObject_Base*> UListDataObject_Base::GetAllChildListData() const
+{
+	// Retorna todos os filhos da coleção.
+	return ChildListDataArray;
+}
+
+bool UListDataObject_Base::HasAnyChildListData() const
+{
+	// Retorna se existem filhos registrados.
+	return !ChildListDataArray.IsEmpty();
 }
 
 int32 UListDataObject_Base::GetEntryHierarchyDepth() const
@@ -76,17 +106,39 @@ bool UListDataObject_Base::IsLastChild() const
 	if (!ParentData) return false;
 	
 	// Obtém os irmãos do item atual.
-	TArray<UListDataObject_Base*> Siblings = ParentData->GetAllChildListData();
+	TArray<UListDataObject_Base*> Children = ParentData->GetAllChildListData();
+	
+	// Retorna false se o pai não possuir filhos válidos.
+	if (Children.IsEmpty()) return false;
 	
 	// Retorna se o item é o último filho.
-	return Siblings.Last() == this;
+	return Children.Last() == this;
+}
+
+void UListDataObject_Base::SetChildrenMode(const EEntryChildrenMode InChildrenMode)
+{
+	// Define o modo de comportamento da entry.
+	ChildrenMode = InChildrenMode;
+	
+	// Mantem os filhos da entry sempre visiveis e ativos se o modo de for Always Visible (Sempre visivel).
+	if (ChildrenMode == EEntryChildrenMode::AlwaysVisible)
+	{
+		bIsExpanded = true;
+		bChildrenAreActive = true;
+	}
 }
 
 bool UListDataObject_Base::IsSubItem() const
 {
-	const bool bIsSubCategoryItem = ParentData->IsA<UListDataObject_SubCategory>();
-	const bool bIsBoolChild = ParentData->IsA<UListDataObject_Bool>();
+	// Retorna false se o item não possuir pai.
+	if (!ParentData) return false;
 	
-	// Retorna se o pai for uma subcategoria.
-	return ParentData && bIsSubCategoryItem || bIsBoolChild;
+	// Define a variavel como true se a classe pai for Category
+	const bool bParentIsCategory = ParentData->IsA<UListDataObject_Category>();
+	
+	// Define a variavel como true se a classe pai for Subcategory
+	const bool bParentIsSubCategory = ParentData->IsA<UListDataObject_SubCategory>();
+	
+	// Retorna true se o Pai não for uma Category ou se for uma SubCategory (SubCategory herda Category).
+	return !bParentIsCategory || bParentIsSubCategory;
 }

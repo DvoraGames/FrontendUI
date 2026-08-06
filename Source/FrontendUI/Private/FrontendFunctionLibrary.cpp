@@ -29,3 +29,15 @@ TSoftObjectPtr<UTexture2D> UFrontendFunctionLibrary::GetOptionsSoftImageByTag(FG
 	// FindRef: retorna o soft object associado à tag e nullptr se não existir
 	return FrontendDeveloperSettings->OptionsScreenSoftImage.FindRef(InImageTag);
 }
+
+float HelperFunctions::StringToFloat(const FString& InString)
+{
+	// Inicializa o valor convertido.
+	float OutConvertedValue = 0;
+	
+	// Converte a string recebida para float.
+	LexFromString(OutConvertedValue, InString);
+	
+	// Retorna o valor convertido
+	return OutConvertedValue;
+}

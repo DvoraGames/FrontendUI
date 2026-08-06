@@ -6,6 +6,8 @@
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 #include "Widget_ListEntry_Scalar.generated.h"
 
+class UToggleActionButton;
+class UCommonButtonBase;
 class UListDataObject_Scalar;
 class UCommonNumericTextBlock;
 class UAnalogSlider;
@@ -46,6 +48,10 @@ private:
 	UFUNCTION()
 	void OnSliderMouseCaptureBegins();
 	
+	// Handler disparado ao clicar na ação de estado (toggle) desta entry.
+	UFUNCTION()
+	void OnStateActionClicked();
+	
 	// ----------------------------------------------------------
 	// Bound Widgets
 	// ----------------------------------------------------------
@@ -56,7 +62,7 @@ private:
 
 	// Slider usado para alterar o valor da opção.
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	UAnalogSlider*  AnalogSlider_SettingSlider;
+	UAnalogSlider* AnalogSlider_SettingSlider;
 	
 	// ----------------------------------------------------------
 	// Runtime Data

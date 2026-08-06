@@ -29,3 +29,9 @@ public:
 	static TSoftObjectPtr<UTexture2D> GetOptionsSoftImageByTag(UPARAM(meta = 
 		(Categories = "Frontend.Image")) FGameplayTag InImageTag); // Tag filtrada para a categoria Frontend.Image
 };
+
+namespace HelperFunctions
+{
+	// Converte uma string em float, retornando 0 se a conversão falhar.
+	float StringToFloat(const FString &InString);
+}

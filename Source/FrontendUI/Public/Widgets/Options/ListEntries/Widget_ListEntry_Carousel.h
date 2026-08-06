@@ -37,16 +37,19 @@ protected:
 		EOptionsListDataModifyReason ModifyReason) override;
 	//~ End UWidget_ListEntry_Base Interface
 	
+	// Atualiza o estado de expansão da categoria.
+	virtual void NativeOnItemExpansionChanged(bool bIsExpanded) override;
+	
 private:
 	// ----------------------------------------------------------
 	// Handlers
 	// ----------------------------------------------------------
 	
 	// Navega para a opção anterior no Carousel.
-	void OnPreviousClicked() const;
+	void OnPreviousClicked();
 	
 	// Navega para a próxima opção no Carousel.
-	void OnNextClicked() const;
+	void OnNextClicked();
 	
 	// Notifica o DataObject com o novo valor selecionado após rotação do Carousel.
 	void OnCarouselRotated(int32 SelectedIndex, bool bFromNavigation) const;

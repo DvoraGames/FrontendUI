@@ -22,9 +22,11 @@ class FRONTENDUI_API UListDataObject_Scalar : public UListDataObject_Value
 	GENERATED_BODY()
 	
 public:
-	// ----------------------------------------------------------
-	// Getters e Setters — gerados via LIST_DATA_ACCESSOR
-	// ----------------------------------------------------------
+	//** ----------------------------------
+	//** Base
+	//** ----------------------------------
+    
+	/** Getters e Setters **/
 	LIST_DATA_ACCESSOR(TRange<float>, DisplayValueRange);
 	LIST_DATA_ACCESSOR(TRange<float>, OutputValueRange);
 	LIST_DATA_ACCESSOR(float, SliderStepSize);
@@ -48,15 +50,13 @@ public:
 	// Retorna o valor atual na faixa de exibição.
 	float GetCurrentValue() const;
 	
-	// Atualiza o valor a partir do slider.
+    // Atualiza o valor interno a partir do valor recebido pelo slider.
 	void SetCurrentValueFromSlider(float InNewValue);
-private:
-	// Converte string para float.
-	static float StringToFloat(const FString &InString);
 	
-	// ----------------------------------------------------------
-	// Properties
-	// ----------------------------------------------------------
+private:
+	//** ----------------------------------
+	//** Base - Properties
+	//** ----------------------------------
 	
 	// Faixa usada para exibir o valor no slider.
 	TRange<float> DisplayValueRange = TRange<float>(0.f, 1.f);

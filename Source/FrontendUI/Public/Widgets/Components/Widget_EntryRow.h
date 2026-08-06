@@ -7,6 +7,7 @@
 #include "Widget_EntryRow.generated.h"
 
 
+class UToggleActionButton;
 class UFrontendCommonTreeView;
 class UListDataObject_Base;
 
@@ -32,14 +33,37 @@ public:
 	
 	// Evento em Blueprint chamado quando o estado de expansão do item é alterado.
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="On Item Expansion Changed")
-	void BP_OnItemExpansionChanged(bool bIsExpandable, bool bIsExpanded);
+	void BP_OnItemExpansionChanged(bool bCanExpand, bool bIsExpanded);
 	
 	// Solicita a troca do estado de expansão do item.
 	UFUNCTION(BlueprintCallable)
 	void RequestToggleExpansion() const;
 	
+	// Evento em Blueprint chamado quando esta row é selecionada ou desselecionada.
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="On Owning Entry Selected")
+	void BP_OnOwningEntrySelected(bool bIsSelected);
+	
+	// Evento em Blueprint chamado quando o hover sobre esta row é alterado.
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="On Owning Entry Hovered")
+	void BP_OnOwningEntryHovered(bool bIsHovered, bool bEntryStillSelected);
+	
+	// Retorna true se este item pode ser expandido manualmente.
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool BP_CanManualExpand() const;
+	
+	// Atualiza o visual do botão de expansão conforme o estado atual.
+	void RefreshExpansionButtonVisual() const;
+	
+protected:
+	// Faz o bind inicial dos eventos do botão de expansão.
+	virtual void NativeOnInitialized() override;
+	
 private:	
 	// DataObject associado a esta row.
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UListDataObject_Base* EntryDataObject;
+	
+	// Botão responsável por expandir/recolher os filhos desta row.
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
+	UToggleActionButton* ToggleButton_Expansion;
 };

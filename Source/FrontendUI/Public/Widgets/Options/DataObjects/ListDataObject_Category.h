@@ -17,6 +17,10 @@ class FRONTENDUI_API UListDataObject_Category : public UListDataObject_Collectio
 	GENERATED_BODY()
 	
 protected:
+	//** ----------------------------------
+	//** Base
+	//** ----------------------------------
+	
 	// Executa a inicialização específica da categoria.
 	virtual void OnDataObjectInitialized() override;
 };

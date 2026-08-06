@@ -6,6 +6,7 @@
 #include "Editor/WidgetCompilerLog.h"
 #include "Widgets/Options/DataAsset_DataListEntryMapping.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Base.h"
+#include "Widgets/Options/DataObjects/ListDataObject_Category.h"
 #include "Widgets/Options/ListEntries/Widget_ListEntry_Base.h"
 
 bool UFrontendCommonTreeView::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
@@ -17,7 +18,7 @@ bool UFrontendCommonTreeView::OnIsSelectableOrNavigableInternal(UObject* FirstSe
 	const UListDataObject_Base* SelectedItem = Cast<UListDataObject_Base>(FirstSelectedItem);
 	
 	// Retorna se o item pode ser selecionado.
-	return SelectedItem->IsSelectable();
+	return !SelectedItem->IsA<UListDataObject_Category>();
 }
 
 UUserWidget& UFrontendCommonTreeView::OnGenerateEntryWidgetInternal(UObject* Item,

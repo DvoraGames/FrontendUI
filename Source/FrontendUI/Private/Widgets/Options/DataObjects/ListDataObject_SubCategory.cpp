@@ -6,8 +6,12 @@
 
 void UListDataObject_SubCategory::OnDataObjectInitialized()
 {
+	// Executa a inicialização da classe base.
 	Super::OnDataObjectInitialized();
 	
-	SetIsExpandable(true);							// Define se a categoria pode ser expandida.
-	SetIsExpanded(false);							// Define se a categoria inicia expandida.
+	// Define que os filhos da categoria devem ser expandidos manualmente.
+	SetChildrenMode(EEntryChildrenMode::ExpandableManual);
+	
+	// Garante que a categoria comece recolhida.
+	SetbIsExpanded(false);
 }

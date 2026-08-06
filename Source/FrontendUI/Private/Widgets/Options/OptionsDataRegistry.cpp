@@ -7,10 +7,7 @@
 #include "FrontendSettings/FrontendGameUserSettings.h"
 #include "Internationalization/Culture.h"
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Bool.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Collection.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Category.h"
-#include "Widgets/Options/DataObjects/ListDataObject_Rotator.h"
 #include "Widgets/Options/DataObjects/ListDataObject_Scalar.h"
 #include "Widgets/Options/DataObjects/ListDataObject_StringCarousel.h"
 #include "Widgets/Options/DataObjects/ListDataObject_StringRotator.h"
@@ -66,7 +63,7 @@ GetListSourceItemBySelectedTabID(const FName InSelectedTabID) const
 		AllChildListItems.Add(ChildListData);
 		
 		// Busca os filhos do item recursivamente.
-		if (ChildListData->Implements<UIListDataWithChildren>())
+		if (ChildListData->HasAnyChildListData())
 		{
 			FindChildren(ChildListData, AllChildListItems);
 		}
@@ -113,12 +110,10 @@ void UOptionsDataRegistry::FindChildren(UListDataObject_Base* InParentData,
                                                         TArray<UListDataObject_Base*>& OutFoundChildListData)
 {
 	// Aborta se o item pai for inválido ou não tiver filhos.
-	if (!InParentData || !InParentData->Implements<UIListDataWithChildren>()) return ;
-	
-	IIListDataWithChildren* ParentWithChildren = Cast<IIListDataWithChildren>(InParentData);
+	if (!InParentData || !InParentData->HasAnyChildListData()) return ;
 	
 	// Percorre os filhos do item pai.
-	for (UListDataObject_Base* Child : ParentWithChildren->GetAllChildListData())
+	for (UListDataObject_Base* Child : InParentData->GetAllChildListData())
 	{
 		// Ignora filhos inválidos.
 		if (!Child) continue;
@@ -127,7 +122,7 @@ void UOptionsDataRegistry::FindChildren(UListDataObject_Base* InParentData,
 		OutFoundChildListData.Add(Child);
 		
 		// Continua a busca nos próximos níveis.
-		if (Child->Implements<UIListDataWithChildren>())
+		if (Child->HasAnyChildListData())
 		{
 			FindChildren(Child, OutFoundChildListData);
 		}
@@ -273,15 +268,17 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			MasterVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			MasterVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
 			MasterVolume->SetSliderStepSize(.01f);
-			MasterVolume->SetDefaultValueFromString(LexToString(.5f));
+			MasterVolume->SetDefaultValueFromString(LexToString(0.5f));
 			
 			MasterVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
 			MasterVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
 			
 			MasterVolume->SetDataDynamicGetter(MAKE_OPTIONS_DATA_CONTROL(GetCurrentMasterVolume));
-			MasterVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetCurrentMasterVolume));
+			MasterVolume->SetDataDynamicSetter(MAKE_OPTIONS_DATA_CONTROL(SetMasterVolume));
 			
 			MasterVolume->SetShouldApplySettingsImmediately(true);
+			
+			MasterVolume->SetToggleActionType(EToggleActionType::Mute);
 			
 			VolumeCategory->AddChildListData(MasterVolume);
 		}
@@ -307,6 +304,8 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			MusicVolume->SetShouldApplySettingsImmediately(true);
 			
+			MusicVolume->SetToggleActionType(EToggleActionType::Mute);
+			
 			VolumeCategory->AddChildListData(MusicVolume);
 		}
 		
@@ -331,56 +330,33 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			SFXVolume->SetShouldApplySettingsImmediately(true);
 			
+			SFXVolume->SetToggleActionType(EToggleActionType::Mute);
+			
 			VolumeCategory->AddChildListData(SFXVolume);
-		}
+		}		
+	}
+	
+	/*** Sound Category ***/
+	{
+		UListDataObject_Category* SoundCategory = NewObject<UListDataObject_Category>();
+		SoundCategory->SetDataID(FName("SoundCategoryCollection"));
+		SoundCategory->SetDataDisplayName(FText::FromString(TEXT("Sound")));
 		
-		// Test Object
+		AudioTabCollection->AddChildListData(SoundCategory);
+		
+		// Audio Quality Entry
 		{
-			UListDataObject_Bool* TestBool = NewObject<UListDataObject_Bool>();
+			UListDataObject_StringCarousel* AudioQuality = NewObject<UListDataObject_StringCarousel>();
+			AudioQuality->SetDataID(FName("AudioQuality"));
+			AudioQuality->SetDataDisplayName(FText::FromString(TEXT("Audio Quality")));
 			
-			TestBool->SetDataID(FName("TestBool"));
-			TestBool->SetDataDisplayName(FText::FromString(TEXT("Test Bool")));
+			AudioQuality->AddDynamicOption(TEXT("Mono"), FText::FromString(TEXT("Mono")));
+			AudioQuality->AddDynamicOption(TEXT("Stereo"), FText::FromString(TEXT("Stereo")));
+			AudioQuality->AddDynamicOption(TEXT("Surround"), FText::FromString(TEXT("Surround")));
 			
-			TestBool->SetDefaultBoolValue(false);
-			
-			VolumeCategory->AddChildListData(TestBool);
-			
-			// Test Object
-			{
-				UListDataObject_StringRotator* SubItem = NewObject<UListDataObject_StringRotator>();
-			
-				SubItem->SetDataID(FName("SubItem"));
-				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));
-			
-				SubItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
-				SubItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
+			AudioQuality->SetDefaultValueFromString("Stereo");
 				
-				TestBool->AddChildListData(SubItem);
-			}
-		}
-		
-		/*** Teste Sub Category ***/
-		{
-			UListDataObject_SubCategory* SubCategory = NewObject<UListDataObject_SubCategory>();
-		
-			SubCategory->SetDataID(FName("SubCategoryCollection"));
-			SubCategory->SetDataDisplayName(FText::FromString(TEXT("Sub Category")));
-		
-			VolumeCategory->AddChildListData(SubCategory);
-		
-			// Test Object
-			{
-				UListDataObject_StringRotator* SubItem = NewObject<UListDataObject_StringRotator>();
-			
-				SubItem->SetDataID(FName("SubItem"));
-				SubItem->SetDataDisplayName(FText::FromString(TEXT("SubItem")));
-			
-				SubItem->AddDynamicOption(TEXT("Teste"), FText::FromString(TEXT("Item")));
-				SubItem->AddDynamicOption(TEXT("Teste2"), FText::FromString(TEXT("Item2")));
-
-			
-				SubCategory->AddChildListData(SubItem);
-			}
+			SoundCategory->AddChildListData(AudioQuality);
 		}
 	}
 	

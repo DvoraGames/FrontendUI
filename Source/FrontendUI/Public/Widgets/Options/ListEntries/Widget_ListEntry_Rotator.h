@@ -47,6 +47,10 @@ private:
 	// Reage à mudança de valor feita pelo Rotator.
 	void OnRotatorValueChanged(int32 Value, bool bUserInitiated) const;
 	
+	// Define o modo de navegação do Rotator.
+	UPROPERTY(EditDefaultsOnly, Category = "Frontend")
+	ERotatorLoopMode NavigationMode;
+	
 	// ----------------------------------------------------------
 	// Bound Widgets
 	// ----------------------------------------------------------

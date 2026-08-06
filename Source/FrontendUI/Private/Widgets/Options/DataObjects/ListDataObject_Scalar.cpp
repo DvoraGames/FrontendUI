@@ -3,6 +3,7 @@
 
 #include "Widgets/Options/DataObjects/ListDataObject_Scalar.h"
 
+#include "FrontendFunctionLibrary.h"
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
 
 FCommonNumberFormattingOptions UListDataObject_Scalar::NoDecimal()
@@ -36,10 +37,10 @@ float UListDataObject_Scalar::GetCurrentValue() const
 
 void UListDataObject_Scalar::SetCurrentValueFromSlider(float InNewValue)
 {
-	// Retorna zero se o setter for inválido.
+    // Aborta se o setter for inválido.
 	if (!DataDynamicSetter) return;
 	
-	// Converte o valor de exibição para o valor atual interno.
+    // Converte o valor de exibição para o valor interno da configuração.
 	const float ClampedValue = FMath::GetMappedRangeValueClamped(
 		DisplayValueRange, 
 		OutputValueRange,
@@ -64,8 +65,8 @@ bool UListDataObject_Scalar::CanResetBackToDefaultValue() const
 	// Converte o valor atual interno para float.
 	const float CurrentValue = StringToFloat(DataDynamicGetter->GetValueAsString());
 		
-	// Retorna se o valor atual for igual ao padrão.
-	return FMath::IsNearlyEqual(CurrentValue, DefaultValue, 0.01f);
+	// Retorna true se o valor atual for diferente do padrão.
+	return !FMath::IsNearlyEqual(CurrentValue, DefaultValue, 0.01f);
 }
 
 bool UListDataObject_Scalar::TryResetBackToDefaultValue()
@@ -79,17 +80,6 @@ bool UListDataObject_Scalar::TryResetBackToDefaultValue()
 	// Notifica a alteração do valor.
 	NotifyListDataModified(this);
 		
+	// Retorna true se o reset foi bem sucedido
 	return true;
-}
-
-float UListDataObject_Scalar::StringToFloat(const FString& InString)
-{
-	// Inicializa o valor convertido.
-	float OutConvertedValue = 0;
-	
-	// Converte a string recebida para float.
-	LexFromString(OutConvertedValue, InString);
-	
-	// Retorna o valor convertido
-	return OutConvertedValue;
 }

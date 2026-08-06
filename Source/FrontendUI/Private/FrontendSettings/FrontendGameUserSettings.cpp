@@ -3,12 +3,19 @@
 
 #include "FrontendSettings/FrontendGameUserSettings.h"
 
+#include "FrontendSettings/FrontendDeveloperSettings.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundClass.h"
+#include "Sound/SoundMix.h"
+
 UFrontendGameUserSettings::UFrontendGameUserSettings()
 : MasterVolume(1.f)
 , MusicVolume(1.f)
 , SFXVolume(1.f)
+, bAllowBackgroundAudio(false)
 {
-	
+	// Cacheia as Developer Settings do Frontend para uso nos métodos de volume.
+	FrontendDeveloperSettings = GetDefault<UFrontendDeveloperSettings>();
 }
 
 void UFrontendGameUserSettings::ApplySettings(bool bCheckForCommandLineOverrides)
@@ -47,26 +54,61 @@ void UFrontendGameUserSettings::SetCurrentGameLanguage(const FString& InNewLangu
 	FInternationalization::Get().SetCurrentCulture(CurrentGameLanguage);
 }
 
-void UFrontendGameUserSettings::SetCurrentMasterVolume(const float InNewVolume)
+void UFrontendGameUserSettings::SetMasterVolume(const float InNewVolume)
 {
-	// Atualiza o volume master.
+	// Atualiza o volume master salvo.
 	MasterVolume = InNewVolume;
 	
-	// TODO: Aplicar o volume no jogo
+	// Aplica o novo volume na SoundClass master.
+	ApplyGameVolume(MasterVolume, FrontendDeveloperSettings->MasterSoundClass.TryLoad());
+
 }
 
 void UFrontendGameUserSettings::SetCurrentMusicVolume(const float InNewVolume)
 {
-	// Atualiza o volume de música.
+	// Atualiza o volume de música salvo.
 	MusicVolume = InNewVolume;
 	
-	// TODO: Aplicar o volume no jogo
+	// Aplica o novo volume na SoundClass master.
+	ApplyGameVolume(MusicVolume, FrontendDeveloperSettings->MusicSoundClass.TryLoad());
 }
 
 void UFrontendGameUserSettings::SetCurrentSFXVolume(const float InNewVolume)
 {
-	// Atualiza o volume de efeitos sonoros.
+	// Atualiza o volume de efeitos sonoros salvo.
 	SFXVolume = InNewVolume;
 	
-	// TODO: Aplicar o volume no jogo
+	// Aplica o novo volume na SoundClass master.
+	ApplyGameVolume(SFXVolume, FrontendDeveloperSettings->SFXSoundClass.TryLoad());
+}
+
+void UFrontendGameUserSettings::ApplyGameVolume(const float InVolume, UObject* SoundClassObject) const
+{
+	// Obtém o mundo de áudio ativo, se houver.
+	const UWorld* InAudioWorld = GEngine ? GEngine->GetCurrentPlayWorld() : nullptr;
+	
+	// Aborta se não houver mundo válido ou Developer Settings configuradas.
+	if (!InAudioWorld || !FrontendDeveloperSettings) return;
+	
+	// Faz o cast do objeto genérico para SoundClass.
+	USoundClass* InSoundClass = Cast<USoundClass>(SoundClassObject);
+	
+	// Carrega o SoundMix padrão configurado nas Developer Settings.
+	USoundMix* DefaultSoundMix = Cast<USoundMix>(FrontendDeveloperSettings->DefaultSoundMix.TryLoad());
+	
+	// Aborta se a SoundClass ou o SoundMix forem inválidos.
+	if (!InSoundClass || !DefaultSoundMix) return;
+	
+	// Aplica o volume desejado como override na SoundClass, via SoundMix.
+	UGameplayStatics::SetSoundMixClassOverride(
+		InAudioWorld, DefaultSoundMix, InSoundClass, InVolume, 1.f, 0.2f);
+	
+	// Garante que o SoundMix esteja ativo para que o override tenha efeito.
+	UGameplayStatics::PushSoundMixModifier(InAudioWorld, DefaultSoundMix);
+}
+
+void UFrontendGameUserSettings::SetAllowBackgroundAudio(const bool bIsAllowed)
+{
+	// Atualiza a flag de áudio em segundo plano.
+	bAllowBackgroundAudio = bIsAllowed;
 }

@@ -254,10 +254,10 @@ void UWidget_OptionsScreen::OnOptionsTabSelected(FName TabID)
 		}
 		
 		// Verifica se o item tem a Interface responsavel pelos filhos quando existir
-		if (Item->Implements<UIListDataWithChildren>())
+		if (Item->HasAnyChildListData())
 		{
 			// Sincroniza a expansão do item com o estado do DataObject.
-			CommonTreeView_OptionsList->SetItemExpansion(Item, IIListDataWithChildren::Execute_GetIsExpanded(Item));
+			CommonTreeView_OptionsList->SetItemExpansion(Item, Item->GetbIsExpanded());
 		}
 	}		
 		
@@ -322,10 +322,10 @@ void UWidget_OptionsScreen::OnListItemSelected(UObject* InSelectedItem) const
 	
 	/*** Talvez Precise Modificar pois futuras entries com filhos também poderam precisar aparecer no Detail Panel ***/
 	// Ignora itens que possuem filhos.
-	if (InSelectedItem->Implements<UIListDataWithChildren>())
-	{
-		return;
-	}
+	// if (InSelectedItem->Implements<UIListDataWithChildren>())
+	// {
+	// 	return;
+	// }
 	
 	// Atualiza as informações da DetailsView com base no Item atualmente Selecionado.
 	/* As informações são preenchidas no Data Registry */
@@ -395,14 +395,12 @@ void UWidget_OptionsScreen::HandleGetItemChildren(UObject* InItem, TArray<UObjec
 	UListDataObject_Base* FoundData = Cast<UListDataObject_Base>(InItem);
 	
 	// Aborta se o item for inválido ou não possuir filhos.
-	if (!FoundData || !FoundData->Implements<UIListDataWithChildren>()) return;
+	if (!FoundData || !FoundData->HasAnyChildListData()) return;
 	
-	IIListDataWithChildren* DataWithChildren = Cast<IIListDataWithChildren>(FoundData);
-	
-	if (!DataWithChildren->HasAnyChildListData()) return;
+	if (!FoundData->HasAnyChildListData()) return;
 	
 	// Adiciona os filhos válidos no array de saída do TreeView.
-	for (UListDataObject_Base* ChildData : DataWithChildren->GetAllChildListData())
+	for (UListDataObject_Base* ChildData : FoundData->GetAllChildListData())
 	{
 		// Ignora filhos inválidos.
 		if (!ChildData) continue;
@@ -430,7 +428,7 @@ UListDataObject_Base* UWidget_OptionsScreen::FindFirstSelectableItem(const TArra
 		if (!DataObject) continue;
 		
 		// Retorna o DataObject imediatamente se o mesmo for selecionável.
-		if (DataObject->IsSelectable()) return DataObject;
+		if (!DataObject->UsesAlwaysVisibleChildren()) return DataObject;
 		
 		// Busca nos filhos se o item for uma coleção.
 		if (DataObject->HasAnyChildListData())

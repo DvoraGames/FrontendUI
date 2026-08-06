@@ -6,6 +6,7 @@
 #include "GameFramework/GameUserSettings.h"
 #include "FrontendGameUserSettings.generated.h"
 
+class UFrontendDeveloperSettings;
 /**
 * UFrontendGameUserSettings
 *
@@ -13,12 +14,13 @@
 * Usado para adicionar, salvar e aplicar configurações customizadas do jogo (ex: Dificuldade, Idioma)
 * que persistem no arquivo GameUserSettings.ini local do jogador.
 */
-UCLASS()
+UCLASS(Config = GameUserSettings, DefaultConfig)
 class FRONTENDUI_API UFrontendGameUserSettings : public UGameUserSettings
 {
 	GENERATED_BODY()
 	
 public:
+	// Construtor - define os valores padrão.
 	UFrontendGameUserSettings();
 	
 	//~ Begin UMovieGraphGlobalGameOverridesNode Interface
@@ -70,7 +72,7 @@ public:
 	
 	// Define um novo volume master.
 	UFUNCTION()
-	void SetCurrentMasterVolume(const float InNewVolume);
+	void SetMasterVolume(const float InNewVolume);
 	
 	/*** Music Volume ***/
 	
@@ -92,7 +94,22 @@ public:
 	UFUNCTION()
 	void SetCurrentSFXVolume(const float InNewVolume);
 	
+	// Função helper que aplica o volume informado na SoundClass correspondente via SoundMix.
+	void ApplyGameVolume(float InVolume, UObject* SoundClassObject) const;
+	
+	// Retorna se o áudio em segundo plano está permitido.
+	UFUNCTION()
+	bool GetAllowBackgroundAudio() const { return bAllowBackgroundAudio; }
+	
+	// Define um novo volume para os efeitos sonoros.
+	UFUNCTION()
+	void SetAllowBackgroundAudio(const bool bIsAllowed);
+
 private:
+	// Cache das Developer Settings do Frontend, usadas para acessar as SoundClasses/SoundMix.
+	UPROPERTY()
+	const UFrontendDeveloperSettings* FrontendDeveloperSettings = GetDefault<UFrontendDeveloperSettings>();
+
 	// ----------------------------------------------------------
 	// Gameplay Collection Properties
 	// ----------------------------------------------------------
@@ -120,5 +137,9 @@ private:
 	// Volume de efeitos salvo no GameUserSettings.ini.
 	UPROPERTY(Config)
 	float SFXVolume;
+	
+	// Define se o áudio deve continuar tocando quando o jogo está em segundo plano.
+	UPROPERTY(Config)
+	bool bAllowBackgroundAudio;
 	
 };

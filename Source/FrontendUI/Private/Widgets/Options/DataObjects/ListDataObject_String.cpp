@@ -1,44 +1,47 @@
 // DvoraGames All Rights Reserved
 
-
 #include "Widgets/Options/DataObjects/ListDataObject_String.h"
-
 #include "Widgets/Options/OptionsDataInteractionHelper.h"
 
 void UListDataObject_String::OnDataObjectInitialized()
 {
+	// Executa a inicialização da classe base.
 	Super::OnDataObjectInitialized();
 	
-	// Seleciona a primeira opção como valor inicial padrão
+	// Define que a expansão dos filhos será controlada automaticamente.
+	SetChildrenMode(EEntryChildrenMode::ExpandableAuto);
+	
+	// Define a primeira opção como valor inicial, se existir.
 	if (!AvailableOptionsStringArray.IsEmpty())
 	{
 		CurrentStringValue = AvailableOptionsStringArray[0];
 	}
 
-	// Sobrescreve com o valor padrão configurado no DataAsset, se houver
+	// Sobrescreve com o valor padrão configurado, se existir.
 	if (HasDefaultValue())
 	{
 		CurrentStringValue = GetDefaultValueAsString();
 	}
 
-	// Verifica se o Getter via Reflection está configurado e se o retorno do Getter não está vazio
+	// Sobrescreve com o valor atual retornado pelo backend, se válido.
 	if (DataDynamicGetter && !DataDynamicGetter->GetValueAsString().IsEmpty())
 	{
-		// Sobrescreve o valor atual com a configuração real retornada pelo backend do jogo (GameUserSettings)
 		CurrentStringValue = DataDynamicGetter->GetValueAsString();
 	}
-
-	// Sincroniza o texto de exibição - usa fallback se o valor não for encontrado nas opções
+	
+	// Atualiza o texto de exibição com base no valor atual.
 	if (!TrySetDisplayTextFromStringValue(CurrentStringValue))
 	{
 		CurrentDisplayText = FText::FromString(TEXT("Invalid Option"));
 	}
 	
+	// Define o estado inicial de expansão dos filhos.
+	SetbIsExpanded(ShouldActivateChildren());
 }
 
 void UListDataObject_String::AddDynamicOption(const FString& InStringValue, const FText& InDisplayText)
 {
-	// Registra nova opção nos arrays de valor interno (FString) e de texto de exibição (FText)
+	// Registra nova opção nos arrays de valor interno (FString) e de texto de exibição (FText).
 	AvailableOptionsStringArray.Add(InStringValue);
 	AvailableOptionsTextArray.Add(InDisplayText);
 }
@@ -51,42 +54,77 @@ bool UListDataObject_String::CanResetBackToDefaultValue() const
 
 bool UListDataObject_String::TryResetBackToDefaultValue()
 {
-	// Aborta se não há valor padrão ou o valor atual já é o padrão
+	// Retorna false se não houver valor padrão ou se o valor atual já for o padrão.
 	if (!CanResetBackToDefaultValue()) return false;
 	
-	// Reverte o valor interno para o padrão configurado
+	// Restaura o valor interno para o valor padrão.
 	CurrentStringValue = GetDefaultValueAsString();
 	
-	// Sincroniza o texto de exibição com o valor revertido
+	// Atualiza o texto exibido com base no valor restaurado.
 	TrySetDisplayTextFromStringValue(CurrentStringValue);
+	
+	// Atualiza o estado de expansão dos filhos.
+	RefreshChildrenExpansionState();
 	
 	// Verifica se o Setter via Reflection está configurado
 	if (DataDynamicSetter)
 	{
-		// Injeta o novo valor em formato de String no backend do jogo (GameUserSettings)
+		// Salva o valor restaurado no backend do jogo.
 		DataDynamicSetter->SetValueFromString(CurrentStringValue);
 	}
 	
-	// Notifica os widgets vinculados para reagirem à mudança e se redesenharem
+	// Notifica os widgets vinculados sobre a alteração.
 	NotifyListDataModified(this);
 		
-	// Retorna que o Reset foi bem-sucedido
+	// Retorna true se o reset foi concluído com sucesso.
 	return true;
 }
 
 bool UListDataObject_String::TrySetDisplayTextFromStringValue(const FString& InStringValue)
 {
-	// Busca o índice do valor interno no array de strings
+	// Busca o índice do valor atual no array de opções internas.
 	const int32 CurrentFoundIndex = AvailableOptionsStringArray.IndexOfByKey(InStringValue);
 	
-	// Verifica se o índice encontrado também é válido no array de textos exibíveis
+	// Verifica se o índice encontrado é válido no array de textos exibidos.
 	if (AvailableOptionsTextArray.IsValidIndex(CurrentFoundIndex))
 	{
-		// Atualiza o texto de exibição com o texto correspondente ao índice
+		// Atualiza o texto exibido com base no índice encontrado.
 		CurrentDisplayText = AvailableOptionsTextArray[CurrentFoundIndex];
 		return true;
 	}
 	
-	// Índice inválido — arrays dessincronizados ou valor não cadastrado
+	// Retorna false se o valor não for encontrado nas opções cadastradas.
 	return false;
+}
+
+void UListDataObject_String::AddChildrenDeactivateStringValues(const TArray<FString>& InStringArray)
+{
+	// Aborta se o array recebido estiver vazio.
+	if (InStringArray.IsEmpty()) return;
+	
+	// Registra os valores que devem desativar ou colapsar os filhos.
+	for (FString InString : InStringArray)
+	{
+		CollapseOrDisableStringArray.Add(InString);
+	}
+}
+
+bool UListDataObject_String::ShouldActivateChildren() const
+{
+	// Retorna false se o valor atual estiver na lista de valores desativados.
+	return !GetCollapseOrDisableStringArray().ContainsByPredicate(
+		[&](const FString& InDeactivatedString)->bool
+		{
+			return CurrentStringValue.Equals(InDeactivatedString, ESearchCase::IgnoreCase);
+		}
+	);
+}
+
+void UListDataObject_String::RefreshChildrenExpansionState()
+{
+	// Aborta se esta entry não usar expansão automática.
+	if (!UsesAutoExpansion()) return;
+	
+	// Atualiza o estado de expansão com base no valor atual.
+	SetbIsExpanded(ShouldActivateChildren());
 }

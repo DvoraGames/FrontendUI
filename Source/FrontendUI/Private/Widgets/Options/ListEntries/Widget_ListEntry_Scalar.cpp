@@ -15,6 +15,8 @@ void UWidget_ListEntry_Scalar::NativeOnInitialized()
 	
 	// Registra o handler de interação do slider.
 	AnalogSlider_SettingSlider->OnMouseCaptureBegin.AddUniqueDynamic(this, &ThisClass::OnSliderMouseCaptureBegins);
+	
+	
 }
 
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UListDataObject_Base* InOwningListDataObject)
@@ -44,6 +46,8 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UListDataObject_Base* I
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData,
 	EOptionsListDataModifyReason ModifyReason)
 {
+	Super::OnOwningListDataObjectModified(OwningModifiedData, ModifyReason);
+
 	// Aborta se o DataObject for inválido.
 	if (!CachedOwningScalarDataObject) return;
 	
@@ -68,3 +72,9 @@ void UWidget_ListEntry_Scalar::OnSliderMouseCaptureBegins()
 	// Força a seleção desta entry ao iniciar a interação com o slider.
 	SelectThisEntryWidget();
 }
+
+void UWidget_ListEntry_Scalar::OnStateActionClicked()
+{
+	// Ainda sem implementação — placeholder para ação de estado futura.
+}
+
