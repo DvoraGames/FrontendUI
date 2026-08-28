@@ -32,6 +32,7 @@ public:
 	LIST_DATA_ACCESSOR(float, SliderStepSize);
 	LIST_DATA_ACCESSOR(ECommonNumericType, DisplayNumericType);
 	LIST_DATA_ACCESSOR(FCommonNumberFormattingOptions, NumberFormattingOptions);
+	LIST_DATA_ACCESSOR(bool, bIsLinked);
 	
 	//~ Begin UListDataObject_Base Interface	
 	// Retorna true se há valor padrão definido e o valor atual é diferente dele.
@@ -53,6 +54,25 @@ public:
     // Atualiza o valor interno a partir do valor recebido pelo slider.
 	void SetCurrentValueFromSlider(float InNewValue);
 	
+	//** ----------------------------------
+	//** Linked
+	//** ----------------------------------
+	
+	// Retorna true se houver filho Linkado
+	bool HasLinkedChild() const { return !LinkedScalarChildren.IsEmpty(); }
+	
+	// Define as referencias dos filhos linkados via DataRegistry
+	void SetLinkedScalarChildren(const TArray<UListDataObject_Scalar*>& InChildren) { LinkedScalarChildren = InChildren; }
+	
+protected:
+	//** ----------------------------------
+	//** Base
+	//** ----------------------------------
+	//~ Begin UListDataObject_Base Interface
+	// Inicialização do DataObject_Scalar
+	virtual void OnDataObjectInitialized() override;
+	//~ End UListDataObject_Base Interface
+	
 private:
 	//** ----------------------------------
 	//** Base - Properties
@@ -73,4 +93,18 @@ private:
 	// Define as opções de formatação do número exibido.
 	FCommonNumberFormattingOptions NumberFormattingOptions;
 	
+	//** ----------------------------------
+	//** Linked - Properties
+	//** ----------------------------------
+	
+	// Indica se esta opção está com link ativo
+	UPROPERTY(Transient)
+	bool bIsLinked;
+	
+	// Armazena as referências dos filhos linkados
+	UPROPERTY(Transient)
+	TArray<UListDataObject_Scalar*> LinkedScalarChildren;
+	
+	// Executa a lógica de link entre as opções relacionadas
+	virtual void OnExecuteLink() override;
 };

@@ -28,7 +28,7 @@ void UListDataObject_Value::ExecuteToggleAction()
 			break;
 
 		case EToggleActionType::Link:
-			OnExcuteLink();
+			OnExecuteLink();
 			break;
 
 		default:
@@ -98,4 +98,8 @@ void UListDataObject_Value::OnExecuteMute()
 	NotifyListDataModified(this);
 }
 
-void UListDataObject_Value::OnExcuteLink() {}
+void UListDataObject_Value::OnExecuteLink()
+{
+	// Notifica os widgets vinculados sobre a mudança.
+	NotifyListDataModified(this);
+}

@@ -267,7 +267,7 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			MasterVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			MasterVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
-			MasterVolume->SetSliderStepSize(.01f);
+			MasterVolume->SetSliderStepSize(.05f);
 			MasterVolume->SetDefaultValueFromString(LexToString(0.5f));
 			
 			MasterVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
@@ -292,7 +292,7 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			MusicVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			MusicVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
-			MusicVolume->SetSliderStepSize(.01f);
+			MusicVolume->SetSliderStepSize(.05f);
 			
 			MusicVolume->SetDefaultValueFromString(LexToString(1.f));
 			
@@ -318,7 +318,7 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 			
 			SFXVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			SFXVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
-			SFXVolume->SetSliderStepSize(.01f);
+			SFXVolume->SetSliderStepSize(.05f);
 			
 			SFXVolume->SetDefaultValueFromString(LexToString(1.f));
 			

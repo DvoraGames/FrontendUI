@@ -39,6 +39,9 @@ protected:
 		EOptionsListDataModifyReason ModifyReason) override;
 	//~ End UWidget_ListEntry_Base Interface
 	
+	// Handler disparado ao clicar na ação de estado (toggle) desta entry.
+	virtual void OnToggleActionClicked() const override;
+	
 private:
 	// Handler disparado quando o valor do slider mudar.
 	UFUNCTION()
@@ -47,10 +50,6 @@ private:
 	// Handler disparado ao iniciar a interação com o slider.
 	UFUNCTION()
 	void OnSliderMouseCaptureBegins();
-	
-	// Handler disparado ao clicar na ação de estado (toggle) desta entry.
-	UFUNCTION()
-	void OnStateActionClicked();
 	
 	// ----------------------------------------------------------
 	// Bound Widgets

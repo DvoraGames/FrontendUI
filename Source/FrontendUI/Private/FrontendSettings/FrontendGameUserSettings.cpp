@@ -12,7 +12,6 @@ UFrontendGameUserSettings::UFrontendGameUserSettings()
 : MasterVolume(1.f)
 , MusicVolume(1.f)
 , SFXVolume(1.f)
-, bAllowBackgroundAudio(false)
 {
 	// Cacheia as Developer Settings do Frontend para uso nos métodos de volume.
 	FrontendDeveloperSettings = GetDefault<UFrontendDeveloperSettings>();
@@ -107,8 +106,3 @@ void UFrontendGameUserSettings::ApplyGameVolume(const float InVolume, UObject* S
 	UGameplayStatics::PushSoundMixModifier(InAudioWorld, DefaultSoundMix);
 }
 
-void UFrontendGameUserSettings::SetAllowBackgroundAudio(const bool bIsAllowed)
-{
-	// Atualiza a flag de áudio em segundo plano.
-	bAllowBackgroundAudio = bIsAllowed;
-}

@@ -198,7 +198,7 @@ void UWidget_ListEntry_Base::NativeOnItemExpansionChanged(const bool bIsExpanded
 		// Sincroniza a row com o estado atual da coleção.
 		WBP_Entry_RowLayout->BP_OnItemExpansionChanged(
 			bExpansionState, 
-			bIsExpanded
+			OwningListDataObject->GetbIsExpanded()
 			);
 		
 		// Atualiza o visual do botão de expansão da row.

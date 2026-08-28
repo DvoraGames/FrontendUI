@@ -96,14 +96,6 @@ public:
 	
 	// Função helper que aplica o volume informado na SoundClass correspondente via SoundMix.
 	void ApplyGameVolume(float InVolume, UObject* SoundClassObject) const;
-	
-	// Retorna se o áudio em segundo plano está permitido.
-	UFUNCTION()
-	bool GetAllowBackgroundAudio() const { return bAllowBackgroundAudio; }
-	
-	// Define um novo volume para os efeitos sonoros.
-	UFUNCTION()
-	void SetAllowBackgroundAudio(const bool bIsAllowed);
 
 private:
 	// Cache das Developer Settings do Frontend, usadas para acessar as SoundClasses/SoundMix.
@@ -136,10 +128,5 @@ private:
 	
 	// Volume de efeitos salvo no GameUserSettings.ini.
 	UPROPERTY(Config)
-	float SFXVolume;
-	
-	// Define se o áudio deve continuar tocando quando o jogo está em segundo plano.
-	UPROPERTY(Config)
-	bool bAllowBackgroundAudio;
-	
+	float SFXVolume;	
 };

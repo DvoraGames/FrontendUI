@@ -54,6 +54,14 @@ void UListDataObject_Scalar::SetCurrentValueFromSlider(float InNewValue)
 	NotifyListDataModified(this);
 }
 
+void UListDataObject_Scalar::OnDataObjectInitialized()
+{
+	Super::OnDataObjectInitialized();
+	
+	// Sincroniza o estado visual do toggle com o estado atual do link na inicialização do objeto.
+	SetbIsToggleActionActive(bIsLinked); 
+}
+
 bool UListDataObject_Scalar::CanResetBackToDefaultValue() const
 {
 	// Retorna false se não houver valor padrão ou se o getter for inválido.
@@ -82,4 +90,33 @@ bool UListDataObject_Scalar::TryResetBackToDefaultValue()
 		
 	// Retorna true se o reset foi bem sucedido
 	return true;
+}
+
+void UListDataObject_Scalar::OnExecuteLink()
+{
+	// Alterna o estado atual do link.
+	SetbIsLinked(!bIsLinked);
+	
+	// Sincroniza o estado visual do toggle.
+	SetbIsToggleActionActive(bIsLinked);
+	
+	// Se o link estiver ativo.
+	if (GetbIsLinked())
+	{
+		// Pega o valor atual do scalar pai.
+		const float CurrentParentValue = GetCurrentValue();
+		
+		// Loop por cada filho Scalar.
+		 for (UListDataObject_Scalar* LinkedChild : LinkedScalarChildren)
+		 {
+		 	if (LinkedChild)
+		 	{
+		 		// Aplica o mesmo valor do pai aos filhos.
+		 		LinkedChild->SetCurrentValueFromSlider(CurrentParentValue);
+		 	}
+		 }
+	}
+	
+	// Notifica os widgets vinculados sobre a alteração.
+	NotifyListDataModified(this);
 }

@@ -83,13 +83,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UListDataObject_Base* OwningListDataObject = nullptr;
 	
+	// Executa a ação de toggle associada ao DataObject desta entry.
+	virtual void OnToggleActionClicked() const;
+	
 private:
 	// Retorna a profundidade hierárquica do DataObject dono.
 	UFUNCTION(BlueprintPure, Category="Options")
 	int32 GetOwningDataHierarchyDepth() const;
-	
-	// Executa a ação de toggle associada ao DataObject desta entry.
-	void OnToggleActionClicked() const;
 	
 	// Atualiza apenas o estado ativo/inativo visual do botão de toggle.
 	void RefreshToggleActionVisual() const;

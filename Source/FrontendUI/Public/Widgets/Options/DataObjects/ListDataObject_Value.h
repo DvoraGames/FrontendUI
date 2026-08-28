@@ -78,6 +78,6 @@ private:
 	// Executa a lógica de mute/unmute.
 	void OnExecuteMute();
 	
-	// Executa a lógica de link (ainda não implementada).
-	void OnExcuteLink();
+	// Executa a lógica de link que sincroniza opções relacionadas.
+	virtual void OnExecuteLink();
 };

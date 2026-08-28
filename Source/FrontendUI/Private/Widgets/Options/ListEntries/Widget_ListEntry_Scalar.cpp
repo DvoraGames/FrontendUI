@@ -37,10 +37,18 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectSet(UListDataObject_Base* I
 	/*** Analog Slider ***/
 	// Sincroniza o valor mínimo do slider com base no DataObject.
 	AnalogSlider_SettingSlider->SetMinValue(CachedOwningScalarDataObject->GetDisplayValueRange().GetLowerBoundValue());
-	// Sincroniza o valor máximo do slider com base nno DataObject.
+	// Sincroniza o valor máximo do slider com base no DataObject.
 	AnalogSlider_SettingSlider->SetMaxValue(CachedOwningScalarDataObject->GetDisplayValueRange().GetUpperBoundValue());
+	
+	AnalogSlider_SettingSlider->SetStepSize(CachedOwningScalarDataObject->GetSliderStepSize());
 	// Sincroniza o valor atual do slider com base no DataObject.
 	AnalogSlider_SettingSlider->SetValue(CachedOwningScalarDataObject->GetCurrentValue());	
+	
+	if (CachedOwningScalarDataObject->HasLinkedChild())
+	{
+		SyncTreeExpansion(CachedOwningScalarDataObject, !CachedOwningScalarDataObject->GetbIsLinked());
+	}
+	
 }
 
 void UWidget_ListEntry_Scalar::OnOwningListDataObjectModified(UListDataObject_Base* OwningModifiedData,
@@ -56,6 +64,11 @@ void UWidget_ListEntry_Scalar::OnOwningListDataObjectModified(UListDataObject_Ba
 	
 	// Atualiza o valor atual exibido no slider.
 	AnalogSlider_SettingSlider->SetValue(CachedOwningScalarDataObject->GetCurrentValue());
+	
+	if (CachedOwningScalarDataObject->HasLinkedChild())
+	{
+		AnalogSlider_SettingSlider->SetIsEnabled(CachedOwningScalarDataObject->GetbIsLinked());
+	}
 }
 
 void UWidget_ListEntry_Scalar::OnSliderValueChanged(const float Value)
@@ -73,8 +86,17 @@ void UWidget_ListEntry_Scalar::OnSliderMouseCaptureBegins()
 	SelectThisEntryWidget();
 }
 
-void UWidget_ListEntry_Scalar::OnStateActionClicked()
-{
-	// Ainda sem implementação — placeholder para ação de estado futura.
+void UWidget_ListEntry_Scalar::OnToggleActionClicked() const
+{		
+	Super::OnToggleActionClicked();
+	
+	// Aborta se o DataObject for inválido.
+	if (!CachedOwningScalarDataObject) return;
+	
+	// Verifica se o DataObject possui filhos linkados.
+	if (CachedOwningScalarDataObject->HasLinkedChild())
+	{
+		// Sincroniza a expansão da entry com o estado atual do Link.
+		SyncTreeExpansion(CachedOwningScalarDataObject, !CachedOwningScalarDataObject->GetbIsLinked());
+	}
 }
-
