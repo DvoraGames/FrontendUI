@@ -142,7 +142,7 @@ void UWidget_OptionsScreen::OnResetBoundActionTriggered()
 	const FString SelectedTabButtonName = 
 		CastChecked<UFrontendCommonButtonBase>(SelectedTabButton)->GetButtonDisplayText().ToString();
 	
-	/* Obtem a mensagem da String Table e preenche o valor dinamico (entre {Valor}) com o nome da Aba e armazena o 
+	/* Obtem a mensagem da String Table e preenche o valor dinamico {Valor} com o nome da Aba e armazena o 
 	resultado em uma variavel local*/
 	FText ResetMessageFormatted = FText::Format(
 		GetTableTextByKey("Modal.Reset.Message"), 

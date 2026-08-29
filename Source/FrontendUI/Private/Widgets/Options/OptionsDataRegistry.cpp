@@ -139,7 +139,7 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 	GameplayTabCollection->SetDataID(FName("GameplayTabCollection"));
 	
     // Nome exibido no botão/rotulo da aba
-	GameplayTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Gameplay"));
+	GameplayTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Options.Gameplay"));
 	
 	// Cria o Helper da opção de dificuldade, liga o DataObject da UI ao getter GetCurrentGameDifficulty do GameUserSettings via Reflection
 	/** Substituido pelo macro ... para ter menos repetição e deixar a manutenção facil **/
@@ -158,16 +158,22 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		GameDifficulty->SetDataID(FName("GameDifficulty"));
 		
 		// Aplica o nome de exibição da Opção Difficulty usando o Helper que pega a Key da String Table
-		GameDifficulty->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty"));
+		GameDifficulty->SetDataDisplayName(GetTableTextByKey("Menus.Options.Gameplay.Difficulty"));
+		
+		const FText OptEasy = GetTableTextByKey("Menus.Options.Gameplay.Difficulty.OptEasy");
+		const FText OptNormal = GetTableTextByKey("Menus.Options.Gameplay.Difficulty.OptNormal");
+		const FText OptHard = GetTableTextByKey("Menus.Options.Gameplay.Difficulty.OptHard");
+		const FText OptExpert = GetTableTextByKey("Menus.Options.Gameplay.Difficulty.OptExpert");
 		
 		// Aplica a descrição da opção Difficulty usando o Helper que pega a Key da String Table
-		GameDifficulty->SetDescriptionRichText(GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.Description"));
+		GameDifficulty->SetDescriptionRichText(FText::Format(GetTableTextByKey("Menus.Options.Gameplay.DifficultyDesc"), 
+			OptEasy, OptNormal, OptHard, OptExpert));
 		
 		// Registra opções dinâmicas do carrossel (valor interno + texto exibido)
-		GameDifficulty->AddDynamicOption(TEXT("Easy"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptEasy"));
-		GameDifficulty->AddDynamicOption( TEXT("Normal"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptNormal"));
-		GameDifficulty->AddDynamicOption(TEXT("Hard"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptHard"));
-		GameDifficulty->AddDynamicOption(TEXT("Expert"), GetTableTextByKey("Menus.Main.Options.Gameplay.Difficulty.OptExpert"));
+		GameDifficulty->AddDynamicOption(TEXT("Easy"), OptEasy);
+		GameDifficulty->AddDynamicOption( TEXT("Normal"), OptNormal);
+		GameDifficulty->AddDynamicOption(TEXT("Hard"), OptHard);
+		GameDifficulty->AddDynamicOption(TEXT("Expert"), OptExpert);
 		
 		// Define "Normal" como a opção padrão
 		GameDifficulty->SetDefaultValueFromString(TEXT("Normal"));
@@ -192,10 +198,10 @@ void UOptionsDataRegistry::InitGamePlayCollectionTab()
 		GameLanguage->SetDataID(FName("GameLanguage"));
 		
 		// Aplica o nome de exibição da Opção Language usando o Helper que pega a Key da String Table
-		GameLanguage->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Gameplay.Language"));
+		GameLanguage->SetDataDisplayName(GetTableTextByKey("Menus.Options.Gameplay.Language"));
 		
 		// Aplica a descrição da opção Language usando o Helper que pega a Key da String Table
-		GameLanguage->SetDescriptionRichText(GetTableTextByKey("Menus.Main.Options.Gameplay.Language.Description"));
+		GameLanguage->SetDescriptionRichText(GetTableTextByKey("Menus.Options.Gameplay.LanguageDesc"));
 		
 		// Array para armazenar os codigos dos idiomas disponiveis no jogo.
 		// Ex: ["en", "pt-BR", "es"] — apenas os que têm arquivos ".locres" válidos.
@@ -247,14 +253,14 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 {
 	UListDataObject_TabCollection* AudioTabCollection = NewObject<UListDataObject_TabCollection>();
 	AudioTabCollection->SetDataID(FName("AudioTabCollection"));
-	AudioTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Audio"));
+	AudioTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio"));
 	
 	/*** Volume Category ***/
 	{
 		UListDataObject_Category* VolumeCategory = NewObject<UListDataObject_Category>();
 		
 		VolumeCategory->SetDataID(FName("VolumeCategoryCollection"));
-		VolumeCategory->SetDataDisplayName(FText::FromString(TEXT("Volume")));
+		VolumeCategory->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio.Volume"));
 		
 		AudioTabCollection->AddChildListData(VolumeCategory);
 		
@@ -262,12 +268,13 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		{
 			UListDataObject_Scalar* MasterVolume = NewObject<UListDataObject_Scalar>();
 			MasterVolume->SetDataID(FName("MasterVolume"));
-			MasterVolume->SetDataDisplayName(FText::FromString(TEXT("Master Volume")));
-			MasterVolume->SetDescriptionRichText(FText::FromString(TEXT("Master Volume Description")));
+			MasterVolume->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio.Volume.Master"));
+			MasterVolume->SetDescriptionRichText(GetTableTextByKey("Menus.Options.Audio.Volume.MasterDesc"));
 			
 			MasterVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			MasterVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
 			MasterVolume->SetSliderStepSize(.05f);
+			
 			MasterVolume->SetDefaultValueFromString(LexToString(0.5f));
 			
 			MasterVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
@@ -287,14 +294,14 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		{
 			UListDataObject_Scalar* MusicVolume = NewObject<UListDataObject_Scalar>();
 			MusicVolume->SetDataID(FName("MusicVolume"));
-			MusicVolume->SetDataDisplayName(FText::FromString(TEXT("Music Volume")));
-			MusicVolume->SetDescriptionRichText(FText::FromString(TEXT("Music Volume Description")));
+			MusicVolume->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio.Volume.Music"));
+			MusicVolume->SetDescriptionRichText(GetTableTextByKey("Menus.Options.Audio.Volume.MusicDesc"));
 			
 			MusicVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			MusicVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
 			MusicVolume->SetSliderStepSize(.05f);
 			
-			MusicVolume->SetDefaultValueFromString(LexToString(1.f));
+			MusicVolume->SetDefaultValueFromString(LexToString(.5f));
 			
 			MusicVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
 			MusicVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
@@ -313,14 +320,14 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		{
 			UListDataObject_Scalar* SFXVolume = NewObject<UListDataObject_Scalar>();
 			SFXVolume->SetDataID(FName("SFXVolume"));
-			SFXVolume->SetDataDisplayName(FText::FromString(TEXT("SFX Volume")));
-			SFXVolume->SetDescriptionRichText(FText::FromString(TEXT("SFX Volume Description")));
+			SFXVolume->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio.Volume.SFX"));
+			SFXVolume->SetDescriptionRichText(GetTableTextByKey("Menus.Options.Audio.Volume.SFXDesc"));
 			
 			SFXVolume->SetDisplayValueRange(TRange<float>(0.f, 1.f));
 			SFXVolume->SetOutputValueRange(TRange<float>(0.f, 1.f));
 			SFXVolume->SetSliderStepSize(.05f);
 			
-			SFXVolume->SetDefaultValueFromString(LexToString(1.f));
+			SFXVolume->SetDefaultValueFromString(LexToString(.5f));
 			
 			SFXVolume->SetDisplayNumericType(ECommonNumericType::Percentage);
 			SFXVolume->SetNumberFormattingOptions(UListDataObject_Scalar::NoDecimal());
@@ -346,17 +353,26 @@ void UOptionsDataRegistry::InitAudioCollectionTab()
 		
 		// Audio Quality Entry
 		{
-			UListDataObject_StringCarousel* AudioQuality = NewObject<UListDataObject_StringCarousel>();
-			AudioQuality->SetDataID(FName("AudioQuality"));
-			AudioQuality->SetDataDisplayName(FText::FromString(TEXT("Audio Quality")));
+			UListDataObject_StringCarousel* AudioMode = NewObject<UListDataObject_StringCarousel>();
+			AudioMode->SetDataID(FName("AudioMode"));
+			AudioMode->SetDataDisplayName(GetTableTextByKey("Menus.Options.Audio.Sound.AudioMode"));
 			
-			AudioQuality->AddDynamicOption(TEXT("Mono"), FText::FromString(TEXT("Mono")));
-			AudioQuality->AddDynamicOption(TEXT("Stereo"), FText::FromString(TEXT("Stereo")));
-			AudioQuality->AddDynamicOption(TEXT("Surround"), FText::FromString(TEXT("Surround")));
+			const FText OptDefault = GetTableTextByKey("Menus.Options.Audio.Sound.AudioMode.OptDefault");
+			const FText OptHeadphones = GetTableTextByKey("Menus.Options.Audio.Sound.AudioMode.OptHeadphones");
+			const FText OptHomeTheater = GetTableTextByKey("Menus.Options.Audio.Sound.AudioMode.OptHomeTheater");
+			const FText OptNightMode = GetTableTextByKey("Menus.Options.Audio.Sound.AudioMode.OptNightMode");
 			
-			AudioQuality->SetDefaultValueFromString("Stereo");
+			AudioMode->SetDescriptionRichText(FText::Format(GetTableTextByKey("Menus.Options.Audio.Sound.AudioModeDesc"),
+				OptDefault, OptHeadphones, OptHomeTheater, OptNightMode));
+			
+			AudioMode->AddDynamicOption(TEXT("Default"), OptDefault);
+			AudioMode->AddDynamicOption(TEXT("Headphones"), OptHeadphones);
+			AudioMode->AddDynamicOption(TEXT("Home Theater"), OptHomeTheater);
+			AudioMode->AddDynamicOption(TEXT("Night Mode"), OptNightMode);
+			
+			AudioMode->SetDefaultValueFromString("Default");
 				
-			SoundCategory->AddChildListData(AudioQuality);
+			SoundCategory->AddChildListData(AudioMode);
 		}
 	}
 	
@@ -368,7 +384,7 @@ void UOptionsDataRegistry::InitVideoCollectionTab()
 {
 	UListDataObject_TabCollection* VideoTabCollection = NewObject<UListDataObject_TabCollection>();
 	VideoTabCollection->SetDataID(FName("VideoTabCollection"));
-	VideoTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Video"));
+	VideoTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Options.Video"));
 	
 	RegisteredOptionsTabCollections.Add(VideoTabCollection);
 }
@@ -378,7 +394,7 @@ void UOptionsDataRegistry::InitControlCollectionTab()
 {
 	UListDataObject_TabCollection* ControlTabCollection = NewObject<UListDataObject_TabCollection>();
 	ControlTabCollection->SetDataID(FName("ControlTabCollection"));
-	ControlTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Main.Options.Controls"));
+	ControlTabCollection->SetDataDisplayName(GetTableTextByKey("Menus.Options.Controls"));
 	
 	RegisteredOptionsTabCollections.Add(ControlTabCollection);
 }

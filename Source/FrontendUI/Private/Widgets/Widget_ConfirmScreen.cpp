@@ -28,7 +28,7 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkScreen(const FText& 
     // Cria o botão Ok — retorna Closed ao clicar
 	FConfirmScreenButtonInfo OkButtonInfo;										// Objeto Botao
 	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Closed;	// Retorno Botao
-	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");			// Nome Botao
+	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Generic.Ok");			// Nome Botao
 	
 	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);
@@ -51,12 +51,12 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateYesNoScreen(const FTex
     // Cria o botão Yes — retorna Confirmed ao clicar
 	FConfirmScreenButtonInfo YesButtonInfo;
 	YesButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	YesButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Yes");
+	YesButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Generic.Yes");
 	
     // Cria o botão No — retorna Cancelled ao clicar
 	FConfirmScreenButtonInfo NoButtonInfo;
 	NoButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	NoButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.No");
+	NoButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Generic.No");
 	
 	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(YesButtonInfo);
@@ -79,12 +79,12 @@ UConfirmScreenInfoObject* UConfirmScreenInfoObject::CreateOkCancelScreen(const F
     // Cria o botão Ok — retorna Confirmed ao clicar
 	FConfirmScreenButtonInfo OkButtonInfo;	
 	OkButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Confirmed;
-	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Ok");
+	OkButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Generic.Ok");
 	
     // Cria o botão Cancel — retorna Cancelled ao clicar
 	FConfirmScreenButtonInfo CancelButtonInfo;
 	CancelButtonInfo.ConfirmScreenButtonType = EConfirmScreenButtonType::Cancelled;
-	CancelButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Modal.Cancel");
+	CancelButtonInfo.ButtonTextToDisplay = GetTableTextByKey("Generic.Cancel");
 	
 	// Adiciona o botão à lista de botoes disponiveis no modal
 	InfoObject->AvailableScreenButtons.Add(OkButtonInfo);

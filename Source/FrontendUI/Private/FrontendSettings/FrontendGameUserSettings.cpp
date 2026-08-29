@@ -9,7 +9,7 @@
 #include "Sound/SoundMix.h"
 
 UFrontendGameUserSettings::UFrontendGameUserSettings()
-: MasterVolume(1.f)
+: MasterVolume(.5f)
 , MusicVolume(1.f)
 , SFXVolume(1.f)
 {
